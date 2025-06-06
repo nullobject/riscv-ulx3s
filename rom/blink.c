@@ -1,5 +1,6 @@
 #include <stdint.h>
 
+// #define LED ((uint8_t *)0x3000)
 volatile uint8_t *LED = (uint8_t *)0x3000;
 
 void delay(uint32_t d) {
@@ -15,5 +16,6 @@ int __attribute__((noreturn)) main() {
     *LED = 0x00;
     delay(131072);
   }
+
   __builtin_unreachable();
 }

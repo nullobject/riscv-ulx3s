@@ -7,7 +7,7 @@ module gpu (
 
     // character RAM
     input  [ 1:0] char_ram_we,
-    input  [ 7:0] char_ram_addr,
+    input  [ 8:1] char_ram_addr,
     input  [15:0] char_ram_data,
     output [15:0] char_ram_q,
 
@@ -27,13 +27,13 @@ module gpu (
   wire [7:0] pixel_data = char_data;
 
   dual_port_ram #(
-      .DEPTH_A(256)
+      .DEPTH(256)
   ) char_ram (
       .clk(clk),
 
       // port A
       .we_a(char_ram_we),
-      .addr_a(char_ram_addr),
+      .addr_a(char_ram_addr[8:1]),
       .data_a(char_ram_data),
       .q_a(char_ram_q),
 

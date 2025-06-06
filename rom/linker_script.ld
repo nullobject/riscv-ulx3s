@@ -11,6 +11,7 @@ SECTIONS
     . = ALIGN(4);
     _stext = .;
     *(.text)
+    *(.rodata)
     . = ALIGN(4);
     _etext = .;
   } > rom

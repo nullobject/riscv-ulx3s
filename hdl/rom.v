@@ -5,7 +5,7 @@ module rom #(
     parameter DATA_WIDTH = 32
 ) (
     input clk,
-    input [ADDRESS_WIDTH-1:2] addr,
+    input [ADDRESS_WIDTH-1:0] addr,
     output reg [DATA_WIDTH-1:0] q
 );
 

@@ -5,7 +5,7 @@ module ram #(
 ) (
     input clk,
     input [3:0] we,
-    input [ADDRESS_WIDTH-1:2] addr,
+    input [ADDRESS_WIDTH-1:0] addr,
     input [DATA_WIDTH-1:0] data,
     output reg [DATA_WIDTH-1:0] q
 );

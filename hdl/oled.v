@@ -25,11 +25,11 @@ module oled (
 );
 
   // states
-  localparam INIT = 0;
-  localparam IDLE = 1;
-  localparam BLIT = 2;
-  localparam SEND_COMMAND = 3;
-  localparam SEND_DATA = 4;
+  localparam integer INIT = 0;
+  localparam integer IDLE = 1;
+  localparam integer BLIT = 2;
+  localparam integer SEND_COMMAND = 3;
+  localparam integer SEND_DATA = 4;
 
   reg [2:0] state;
   reg [4:0] counter;

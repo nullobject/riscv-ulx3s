@@ -2,15 +2,14 @@ DEVICE = 85k
 PIN_DEF = ulx3s_v20.lpf
 BUILDDIR = build
 
-PROG = display
+PROG = blink
 PROG_C = rom/$(PROG).c
-PROG_O = $(BUILDDIR)/$(PROG).o
 PROG_OUT = $(BUILDDIR)/$(PROG).out
 PROG_BIN = $(BUILDDIR)/$(PROG).bin
 PROG_HEX = $(BUILDDIR)/$(PROG).hex
 FAKE_HEX = $(BUILDDIR)/rom.hex
 
-SRC = $(wildcard hdl/*.v) $(wildcard lib/fx68k/*.v)
+SRC = $(wildcard hdl/*.v) $(wildcard lib/*.v)
 
 all: $(BUILDDIR)/toplevel.bit
 
@@ -35,12 +34,15 @@ $(FAKE_HEX):
 	mkdir -p $(BUILDDIR)
 	ecpbram -w 16 -d 2048 -g $@
 
-$(PROG_BIN): $(PROG_C) rom/linker_script.ld
+$(PROG_OUT): $(PROG_C) rom/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	m68k-linux-gnu-gcc -Wall -march=68000 -Os -fomit-frame-pointer -ffreestanding -nostdlib -nostartfiles -Wl,-Trom/linker_script.ld -o $@ $<
+	riscv32-unknown-elf-gcc -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ $<
+
+$(PROG_BIN): $(PROG_OUT)
+	riscv32-unknown-elf-objcopy -O binary $< $@
 
 $(PROG_HEX): $(PROG_BIN)
-	hexdump -v -e '2/1 "%02X" "\n"' $< > $@
+	hexdump -v -e '4/1 "%02X" "\n"' $< > $@
 
 $(BUILDDIR)/%.json: $(SRC) $(FAKE_HEX)
 	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(SRC)

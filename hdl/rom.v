@@ -2,7 +2,7 @@ module rom #(
     parameter MEM_INIT_FILE = "",
     parameter DEPTH = 16384,
     parameter ADDRESS_WIDTH = $clog2(DEPTH),
-    parameter DATA_WIDTH = 16
+    parameter DATA_WIDTH = 32
 ) (
     input clk,
     input [ADDRESS_WIDTH-1:2] addr,

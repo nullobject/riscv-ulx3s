@@ -32,11 +32,11 @@ clean:
 
 $(FAKE_HEX):
 	mkdir -p $(BUILDDIR)
-	ecpbram -w 16 -d 2048 -g $@
+	ecpbram -w 32 -d 1024 -g $@
 
 $(PROG_OUT): $(PROG_C) rom/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	riscv32-unknown-elf-gcc -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ $<
+	riscv32-unknown-elf-gcc -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.S $<
 
 $(PROG_BIN): $(PROG_OUT)
 	riscv32-unknown-elf-objcopy -O binary $< $@

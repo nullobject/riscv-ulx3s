@@ -9,9 +9,8 @@ module top (
     output [7:0] gn
 );
 
-  localparam integer MEM_WORDS = 32768;
-  localparam [31:0] STACKADDR = 32'h0000_0000 + (4 * MEM_WORDS);  // end of memory
-  localparam [31:0] PROGADDR_RESET = 32'h0000_0000;  // 3 MB into flash
+  localparam [31:0] STACKADDR = 32'h0000_2000;
+  localparam [31:0] PROGADDR_RESET = 32'h0000_0000;
 
   assign wifi_gpio0 = 1'b1;
 
@@ -58,7 +57,7 @@ module top (
     endcase
   end
 
-  always @(posedge clk) begin
+  always @(posedge clk_25mhz) begin
     mem_ready <= !mem_ready && (rom_cs || ram_cs || char_ram_cs);
   end
 
@@ -77,7 +76,7 @@ module top (
       .ENABLE_IRQ(0),
       .ENABLE_IRQ_QREGS(0)
   ) cpu (
-      .clk      (clk),
+      .clk      (clk_25mhz),
       .resetn   (rst_n),
       .mem_valid(mem_valid),
       .mem_instr(),

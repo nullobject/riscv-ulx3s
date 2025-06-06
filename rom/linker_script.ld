@@ -10,27 +10,41 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.text)
+    *(.text*)
+    *(.rodata)
+    *(.rodata*)
+    *(.srodata)
+    *(.srodata*)
+    . = ALIGN(4);
+    _etext = .;
+    _sidata = _etext;
   } > rom
 
-  .data :
+  .data : AT(_sidata)
   {
     . = ALIGN(4);
+    _sdata = .;
+    _ram_start = .;
+    . = ALIGN(4);
     *(.data)
+    *(.data*)
     *(.sdata)
+    *(.sdata*)
+    *(.fastcode*)
+    . = ALIGN(4);
+    _edata = .;
   } > ram
 
   .bss :
   {
     . = ALIGN(4);
-    _szero = .;
+    _sbss = .;
     *(.bss)
+    *(.bss*)
+    *(.sbss)
+    *(.sbss*)
+    *(COMMON)
     . = ALIGN(4);
-    _ezero = .;
-  } > ram
-
-  .heap :
-  {
-    . = ALIGN(4);
-    *(.heap)
+    _ebss = .;
   } > ram
 }

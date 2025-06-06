@@ -23,9 +23,9 @@ tty:
 	fujprog -t -b 9600
 
 sim:
-	verilator --trace --exe --build --cc -j 0 -y hdl sim_main.cpp hdl/gpu.v
-	$(MAKE) -j -C obj_dir -f Vgpu.mk
-	obj_dir/Vgpu
+	verilator --trace --exe --build --cc -j 0 -y hdl -y lib sim_main.cpp hdl/top.v
+	$(MAKE) -j -C obj_dir -f Vtop.mk
+	obj_dir/Vtop
 
 clean:
 	rm -rf $(BUILDDIR)

@@ -21,16 +21,11 @@ module top (
   wire [3:0] mem_wstrb;
   wire [31:0] mem_rdata;
 
-  wire rom_cs;
-  wire rom_ready;
+  reg rom_ready;
+  reg ram_ready;
+  reg char_ram_ready;
   wire [31:0] rom_dout;
-
-  wire ram_cs;
-  wire ram_ready;
   wire [31:0] ram_dout;
-
-  wire char_ram_cs;
-  wire char_ram_ready;
   wire [31:0] char_ram_dout;
 
   // reset
@@ -47,19 +42,18 @@ module top (
   // 1000-1FFF RAM
   // 2000-2100 CHAR RAM
   // 3000      LED
-  always @(addr) begin
-    {ram_cs, char_ram_cs, led_cs} = 0;
-    casez (mem_addr[15:12])
-      4'b0001: ram_cs = mem_valid;
-      4'b0010: char_ram_cs = mem_valid;
-      4'b0011: led_cs = mem_valid;
-      default: {ram_cs, char_ram_cs, led_cs} = 0;
-    endcase
-  end
+  wire rom_cs = mem_valid && mem_addr[15:12] == 4'b0000;
+  wire ram_cs = mem_valid && mem_addr[15:12] == 4'b0001;
+  wire char_ram_cs = mem_valid && mem_addr[15:12] == 4'b0010;
+  wire led_cs = mem_valid && mem_addr[15:12] == 4'b0011;
 
   always @(posedge clk_25mhz) begin
-    mem_ready <= !mem_ready && (rom_cs || ram_cs || char_ram_cs);
+    rom_ready      <= !mem_ready && rom_cs;
+    ram_ready      <= !mem_ready && ram_cs;
+    char_ram_ready <= !mem_ready && char_ram_cs;
   end
+
+  assign mem_ready = rom_ready || ram_ready || char_ram_ready;
 
   // decode CPU input data bus
   assign mem_rdata = char_ram_cs ? char_ram_dout : ram_cs ? ram_dout : rom_dout;
@@ -84,7 +78,7 @@ module top (
       .mem_addr (mem_addr),
       .mem_wdata(mem_wdata),
       .mem_wstrb(mem_wstrb),
-      .mem_rdata(mem_rdata),
+      .mem_rdata(mem_rdata)
   );
 
   // ROM

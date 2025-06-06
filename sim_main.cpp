@@ -1,11 +1,11 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 
-#include "Vgpu.h"
+#include "Vtop.h"
 
 int main(int argc, char **argv) {
   VerilatedContext *contextp = new VerilatedContext;
-  Vgpu *dut = new Vgpu{ contextp };
+  Vtop *dut = new Vtop{ contextp };
   contextp->traceEverOn(true);
   VerilatedVcdC *m_trace = new VerilatedVcdC;
   dut->trace(m_trace, 5);
@@ -19,11 +19,7 @@ int main(int argc, char **argv) {
   int i = 0;
 
   while (time < 1000000) {
-    dut->rst_n = time >= 4;
 
-    dut->char_ram_we = i < 64 ? 0b11 : 0b00;
-    dut->char_ram_addr = i;
-    dut->char_ram_data = 0x20 | (i < 32 ? 0x8000 : 0);
     if (dut->clk)
       i++;
 

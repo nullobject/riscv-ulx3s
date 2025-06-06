@@ -9,28 +9,18 @@ SECTIONS
   .text :
   {
     . = ALIGN(4);
+    _stext = .;
     *(.text)
-    *(.text*)
-    *(.rodata)
-    *(.rodata*)
-    *(.srodata)
-    *(.srodata*)
     . = ALIGN(4);
     _etext = .;
-    _sidata = _etext;
   } > rom
 
-  .data : AT(_sidata)
+  .data : AT(ADDR(.text) + SIZEOF(.text))
   {
     . = ALIGN(4);
     _sdata = .;
-    _ram_start = .;
-    . = ALIGN(4);
     *(.data)
-    *(.data*)
     *(.sdata)
-    *(.sdata*)
-    *(.fastcode*)
     . = ALIGN(4);
     _edata = .;
   } > ram
@@ -40,10 +30,6 @@ SECTIONS
     . = ALIGN(4);
     _sbss = .;
     *(.bss)
-    *(.bss*)
-    *(.sbss)
-    *(.sbss*)
-    *(COMMON)
     . = ALIGN(4);
     _ebss = .;
   } > ram

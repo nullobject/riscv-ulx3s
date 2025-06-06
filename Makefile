@@ -3,7 +3,6 @@ PIN_DEF = ulx3s_v20.lpf
 BUILDDIR = build
 
 PROG = blink
-PROG_C = rom/$(PROG).c
 PROG_OUT = $(BUILDDIR)/$(PROG).out
 PROG_BIN = $(BUILDDIR)/$(PROG).bin
 PROG_HEX = $(BUILDDIR)/$(PROG).hex
@@ -34,9 +33,9 @@ $(FAKE_HEX):
 	mkdir -p $(BUILDDIR)
 	ecpbram -w 32 -d 1024 -g $@
 
-$(PROG_OUT): $(PROG_C) rom/linker_script.ld
+$(PROG_OUT): rom/$(PROG).c rom/start.s rom/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	riscv32-unknown-elf-gcc -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.S $<
+	riscv32-unknown-elf-gcc -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.s $<
 
 $(PROG_BIN): $(PROG_OUT)
 	riscv32-unknown-elf-objcopy -O binary $< $@

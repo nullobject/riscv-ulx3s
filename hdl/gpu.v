@@ -6,10 +6,10 @@ module gpu (
     input rst_n,
 
     // character RAM
-    input  [ 1:0] char_ram_we,
-    input  [ 8:1] char_ram_addr,
-    input  [15:0] char_ram_data,
-    output [15:0] char_ram_q,
+    input  [ 3:0] char_ram_we,
+    input  [ 8:2] char_ram_addr,
+    input  [31:0] char_ram_data,
+    output [31:0] char_ram_q,
 
     // OLED
     output       oled_cs,
@@ -33,7 +33,7 @@ module gpu (
 
       // port A
       .we_a(char_ram_we),
-      .addr_a(char_ram_addr[8:1]),
+      .addr_a(char_ram_addr[8:2]),
       .data_a(char_ram_data),
       .q_a(char_ram_q),
 

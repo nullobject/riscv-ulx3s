@@ -12,9 +12,9 @@ void delay(uint32_t d) {
 int __attribute__((noreturn)) main() {
   while (1) {
     *LED = 0xFF;
-    // delay(131072);
-    // *LED = 0x00;
-    // delay(131072);
+    delay(131072);
+    *LED = 0x00;
+    delay(131072);
   }
   __builtin_unreachable();
 }

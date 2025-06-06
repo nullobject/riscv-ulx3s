@@ -9,9 +9,6 @@ module top (
     output [7:0] gn
 );
 
-  localparam [31:0] STACKADDR = 32'h0000_2000;
-  localparam [31:0] PROGADDR_RESET = 32'h0000_0000;
-
   assign wifi_gpio0 = 1'b1;
 
   wire mem_valid;
@@ -24,6 +21,7 @@ module top (
   reg rom_ready;
   reg ram_ready;
   reg char_ram_ready;
+  reg led_ready;
   wire [31:0] rom_dout;
   wire [31:0] ram_dout;
   wire [31:0] char_ram_dout;
@@ -48,27 +46,24 @@ module top (
   wire led_cs = mem_valid && mem_addr[15:12] == 4'b0011;
 
   always @(posedge clk_25mhz) begin
-    rom_ready      <= !mem_ready && rom_cs;
-    ram_ready      <= !mem_ready && ram_cs;
+    rom_ready <= !mem_ready && rom_cs;
+    ram_ready <= !mem_ready && ram_cs;
     char_ram_ready <= !mem_ready && char_ram_cs;
+    led_ready <= !mem_ready && led_cs;
   end
 
-  assign mem_ready = rom_ready || ram_ready || char_ram_ready;
+  assign mem_ready = rom_ready || ram_ready || char_ram_ready || led_ready;
 
   // decode CPU input data bus
-  assign mem_rdata = char_ram_cs ? char_ram_dout : ram_cs ? ram_dout : rom_dout;
+  assign mem_rdata = led_cs ? {24'h0, led} : char_ram_cs ? char_ram_dout : ram_cs ? ram_dout : rom_dout;
 
   // CPU
   picorv32 #(
-      .STACKADDR(STACKADDR),
-      .PROGADDR_RESET(PROGADDR_RESET),
-      .PROGADDR_IRQ(32'h0000_0000),
+      .STACKADDR(32'h0000_2000),
       .BARREL_SHIFTER(1),
       .COMPRESSED_ISA(1),
       .ENABLE_MUL(1),
-      .ENABLE_DIV(1),
-      .ENABLE_IRQ(0),
-      .ENABLE_IRQ_QREGS(0)
+      .ENABLE_DIV(1)
   ) cpu (
       .clk      (clk_25mhz),
       .resetn   (rst_n),

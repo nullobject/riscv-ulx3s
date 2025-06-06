@@ -23,7 +23,7 @@ tty:
 	fujprog -t -b 9600
 
 sim:
-	verilator --trace --exe --build --cc -j 0 -y hdl -y lib sim_main.cpp hdl/top.v
+	verilator -Wno-fatal --trace --exe --build --cc -j 0 -y hdl -y lib sim_main.cpp hdl/top.v
 	$(MAKE) -j -C obj_dir -f Vtop.mk
 	obj_dir/Vtop
 
@@ -41,8 +41,8 @@ $(PROG_OUT): $(PROG_C) rom/linker_script.ld
 $(PROG_BIN): $(PROG_OUT)
 	riscv32-unknown-elf-objcopy -O binary $< $@
 
-$(PROG_HEX): $(PROG_BIN)
-	hexdump -v -e '4/1 "%02X" "\n"' $< > $@
+$(PROG_HEX): $(PROG_OUT)
+	riscv32-unknown-elf-objcopy -O verilog --verilog-data-width=4 $< $@
 
 $(BUILDDIR)/%.json: $(SRC) $(FAKE_HEX)
 	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(SRC)

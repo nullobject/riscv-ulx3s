@@ -25,4 +25,4 @@ addi a0, a0, 4
 blt a0, a1, loop_init_bss
 end_init_bss:
 
-call main
+j main

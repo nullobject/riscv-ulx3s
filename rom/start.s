@@ -2,7 +2,7 @@
 
 start:
 
-# copy data section
+/* copy data section */
 la a0, _etext
 la a1, _sdata
 la a2, _edata
@@ -15,7 +15,7 @@ addi a1, a1, 4
 blt a1, a2, loop_init_data
 end_init_data:
 
-# zero-init bss section
+/* zero-init bss section */
 la a0, _sbss
 la a1, _ebss
 bge a0, a1, end_init_bss

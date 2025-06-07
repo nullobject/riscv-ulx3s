@@ -1,6 +1,6 @@
 MEMORY
 {
-  rom (rx) : ORIGIN = 0x0000, LENGTH = 0x1000
+  rom (rx)  : ORIGIN = 0x0000, LENGTH = 0x1000
   ram (rwx) : ORIGIN = 0x1000, LENGTH = 0x1000
 }
 
@@ -16,7 +16,7 @@ SECTIONS
     _etext = .;
   } > rom
 
-  .data : AT(ADDR(.text) + SIZEOF(.text))
+  .data :
   {
     . = ALIGN(4);
     _sdata = .;
@@ -24,7 +24,7 @@ SECTIONS
     *(.sdata .sdata.*)
     . = ALIGN(4);
     _edata = .;
-  } > ram
+  } > ram AT> rom
 
   .bss :
   {

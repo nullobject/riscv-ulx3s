@@ -16,6 +16,4 @@ int __attribute__((noreturn)) main() {
     *LED = 0x00;
     delay(131072);
   }
-
-  __builtin_unreachable();
 }

@@ -37,6 +37,4 @@ int __attribute__((noreturn)) main() {
 
   while (1) {
   }
-
-  __builtin_unreachable();
 }

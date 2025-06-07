@@ -2,7 +2,10 @@ DEVICE = 85k
 PIN_DEF = ulx3s_v20.lpf
 BUILDDIR = build
 
-PROG = display
+CC = riscv32-unknown-elf-gcc
+OBJCOPY = riscv32-unknown-elf-objcopy
+
+PROG = blink
 PROG_OUT = $(BUILDDIR)/$(PROG).out
 PROG_BIN = $(BUILDDIR)/$(PROG).bin
 PROG_HEX = $(BUILDDIR)/$(PROG).hex
@@ -35,13 +38,13 @@ $(FAKE_HEX):
 
 $(PROG_OUT): rom/$(PROG).c rom/start.s rom/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	riscv32-unknown-elf-gcc -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.s $<
+	$(CC) -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.s $<
 
 $(PROG_BIN): $(PROG_OUT)
-	riscv32-unknown-elf-objcopy -O binary $< $@
+	$(OBJCOPY) -O binary $< $@
 
 $(PROG_HEX): $(PROG_OUT)
-	riscv32-unknown-elf-objcopy -O verilog --verilog-data-width=4 $< $@
+	$(OBJCOPY) -O verilog --verilog-data-width=4 $< $@
 
 $(BUILDDIR)/%.json: $(SRC) $(FAKE_HEX)
 	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(SRC)

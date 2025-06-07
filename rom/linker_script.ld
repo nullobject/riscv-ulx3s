@@ -10,8 +10,8 @@ SECTIONS
   {
     . = ALIGN(4);
     _stext = .;
-    *(.text)
-    *(.rodata)
+    *(.text .text.*)
+    *(.rodata .rodata.*)
     . = ALIGN(4);
     _etext = .;
   } > rom
@@ -20,8 +20,8 @@ SECTIONS
   {
     . = ALIGN(4);
     _sdata = .;
-    *(.data)
-    *(.sdata)
+    *(.data .data.*)
+    *(.sdata .sdata.*)
     . = ALIGN(4);
     _edata = .;
   } > ram
@@ -30,7 +30,8 @@ SECTIONS
   {
     . = ALIGN(4);
     _sbss = .;
-    *(.bss)
+    *(.bss .bss.*)
+    *(COMMON)
     . = ALIGN(4);
     _ebss = .;
   } > ram

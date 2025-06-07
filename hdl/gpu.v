@@ -27,7 +27,9 @@ module gpu (
   wire [7:0] pixel_data = char_data;
 
   dual_port_ram #(
-      .DEPTH(256)
+      .DEPTH(128),
+      .ADDR_WIDTH_A(7),
+      .ADDR_WIDTH_B(8)
   ) char_ram (
       .clk(clk),
 

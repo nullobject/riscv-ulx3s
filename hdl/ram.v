@@ -1,11 +1,11 @@
 module ram #(
     parameter DEPTH = 16384,
-    parameter ADDRESS_WIDTH = $clog2(DEPTH),
+    parameter ADDR_WIDTH = $clog2(DEPTH),
     parameter DATA_WIDTH = 32
 ) (
     input clk,
     input [3:0] we,
-    input [ADDRESS_WIDTH-1:0] addr,
+    input [ADDR_WIDTH-1:0] addr,
     input [DATA_WIDTH-1:0] data,
     output reg [DATA_WIDTH-1:0] q
 );

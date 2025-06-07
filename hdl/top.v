@@ -11,28 +11,28 @@ module top (
 
   assign wifi_gpio0 = 1'b1;
 
-  wire mem_valid;
-  wire mem_ready;
-  wire [31:0] mem_addr;
-  wire [31:0] mem_wdata;
-  wire [3:0] mem_wstrb;
-  wire [31:0] mem_rdata;
+  reg  [ 5:0] reset_cnt = 0;
+  wire        rst_n = &reset_cnt & btn[0];
 
-  reg rom_ready;
-  reg ram_ready;
-  reg char_ram_ready;
-  reg led_ready;
+  wire        cpu_mem_valid;
+  wire        cpu_mem_ready;
+  wire [31:0] cpu_mem_addr;
+  wire [31:0] cpu_mem_wdata;
+  wire [ 3:0] cpu_mem_wstrb;
+  wire [31:0] cpu_mem_rdata;
+
+  reg         rom_ready;
   wire [31:0] rom_dout;
-  wire [31:0] ram_dout;
+  reg         work_ram_ready;
+  wire [31:0] work_ram_dout;
+  reg         char_ram_ready;
   wire [31:0] char_ram_dout;
 
   // reset
-  reg [5:0] reset_cnt = 0;
-  wire rst_n = &reset_cnt & btn[0];
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
 
   // LED
-  always @(posedge clk_25mhz) if (led_cs && mem_wstrb[0]) led <= mem_wdata[7:0];
+  always @(posedge clk_25mhz) if (led_cs && cpu_mem_wstrb[0]) led <= cpu_mem_wdata[7:0];
 
   // chip select
   //
@@ -40,22 +40,26 @@ module top (
   // 1000-1FFF RAM
   // 2000-2100 CHAR RAM
   // 3000      LED
-  wire rom_cs = mem_valid && mem_addr[15:12] == 4'b0000;
-  wire ram_cs = mem_valid && mem_addr[15:12] == 4'b0001;
-  wire char_ram_cs = mem_valid && mem_addr[15:12] == 4'b0010;
-  wire led_cs = mem_valid && mem_addr[15:12] == 4'b0011;
+  wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0000;
+  wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0001;
+  wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0010;
+  wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0011;
 
   always @(posedge clk_25mhz) begin
-    rom_ready <= !mem_ready && rom_cs;
-    ram_ready <= !mem_ready && ram_cs;
-    char_ram_ready <= !mem_ready && char_ram_cs;
-    led_ready <= !mem_ready && led_cs;
+    rom_ready      <= rom_cs;
+    work_ram_ready <= work_ram_cs;
+    char_ram_ready <= char_ram_cs;
   end
 
-  assign mem_ready = rom_ready || ram_ready || char_ram_ready || led_ready;
+  // decode CPU memory ready signal
+  assign cpu_mem_ready = led_cs || char_ram_ready || work_ram_ready || rom_ready;
 
-  // decode CPU input data bus
-  assign mem_rdata = led_cs ? {24'h0, led} : char_ram_cs ? char_ram_dout : ram_cs ? ram_dout : rom_dout;
+  // decode CPU read data bus
+  assign cpu_mem_rdata =
+    led_cs ? {24'h0, led} :
+    char_ram_cs ? char_ram_dout :
+    work_ram_cs ? work_ram_dout :
+    rom_dout;
 
   // CPU
   picorv32 #(
@@ -67,13 +71,12 @@ module top (
   ) cpu (
       .clk      (clk_25mhz),
       .resetn   (rst_n),
-      .mem_valid(mem_valid),
-      .mem_instr(),
-      .mem_ready(mem_ready),
-      .mem_addr (mem_addr),
-      .mem_wdata(mem_wdata),
-      .mem_wstrb(mem_wstrb),
-      .mem_rdata(mem_rdata)
+      .mem_valid(cpu_mem_valid),
+      .mem_ready(cpu_mem_ready),
+      .mem_addr (cpu_mem_addr),
+      .mem_wdata(cpu_mem_wdata),
+      .mem_wstrb(cpu_mem_wstrb),
+      .mem_rdata(cpu_mem_rdata)
   );
 
   // ROM
@@ -82,7 +85,7 @@ module top (
       .DEPTH(1024)
   ) prog_rom (
       .clk(clk_25mhz),
-      .addr(mem_addr[10:2]),
+      .addr(cpu_mem_addr[10:2]),
       .q(rom_dout)
   );
 
@@ -91,19 +94,19 @@ module top (
       .DEPTH(1024)
   ) work_ram (
       .clk(clk_25mhz),
-      .we(ram_cs ? mem_wstrb : 0),
-      .addr(mem_addr[10:2]),
-      .data(mem_wdata),
-      .q(ram_dout)
+      .we(work_ram_cs ? cpu_mem_wstrb : 0),
+      .addr(cpu_mem_addr[10:2]),
+      .data(cpu_mem_wdata),
+      .q(work_ram_dout)
   );
 
   // GPU
   gpu gpu (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .char_ram_we(char_ram_cs ? mem_wstrb : 0),
-      .char_ram_addr(mem_addr[8:2]),
-      .char_ram_data(mem_wdata),
+      .char_ram_we(char_ram_cs ? cpu_mem_wstrb : 0),
+      .char_ram_addr(cpu_mem_addr[8:2]),
+      .char_ram_data(cpu_mem_wdata),
       .char_ram_q(char_ram_dout),
       .oled_cs(gp[0]),
       .oled_rst(gp[1]),

@@ -27,6 +27,8 @@ module top (
   wire [31:0] work_ram_dout;
   reg         char_ram_ready;
   wire [31:0] char_ram_dout;
+  reg         uart_ready;
+  wire [ 7:0] uart_dout;
 
   // reset
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
@@ -40,22 +42,26 @@ module top (
   // 1000-1FFF RAM
   // 2000-2100 CHAR RAM
   // 3000      LED
+  // 4000      UART
   wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0000;
   wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0001;
   wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0010;
   wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0011;
+  wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0100;
 
   always @(posedge clk_25mhz) begin
     rom_ready      <= rom_cs;
     work_ram_ready <= work_ram_cs;
     char_ram_ready <= char_ram_cs;
+    uart_ready     <= uart_cs;
   end
 
   // decode CPU memory ready signal
-  assign cpu_mem_ready = led_cs || char_ram_ready || work_ram_ready || rom_ready;
+  assign cpu_mem_ready = uart_ready || led_cs || char_ram_ready || work_ram_ready || rom_ready;
 
   // decode CPU read data bus
   assign cpu_mem_rdata =
+    uart_cs ? {24'h0, uart_dout} :
     led_cs ? {24'h0, led} :
     char_ram_cs ? char_ram_dout :
     work_ram_cs ? work_ram_dout :
@@ -113,6 +119,35 @@ module top (
       .oled_dc(gp[3]),
       .oled_e(gp[2]),
       .oled_dout(gn)
+  );
+
+  // UART
+  reg uart_e_clk;
+  reg uart_baud_clk;
+  reg [7:0] baud_cnt = 0;
+
+  always @(posedge clk_25mhz) begin
+    uart_e_clk <= !uart_e_clk;
+    uart_baud_clk <= baud_cnt > 81;
+    baud_cnt <= baud_cnt + 1;
+    if (baud_cnt > 162) baud_cnt <= 0;
+  end
+
+  acia uart (
+      .clk(clk_25mhz),
+      .reset(!rst_n),
+      .cs(uart_cs),
+      .e_clk(uart_e_clk),
+      .rw_n(!cpu_mem_wstrb[0]),
+      .rs(cpu_mem_addr[2]),
+      .data_in(cpu_mem_wdata[7:0]),
+      .data_out(uart_dout),
+      .txclk(uart_baud_clk),
+      .rxclk(uart_baud_clk),
+      .txdata(ftdi_rxd),
+      .rxdata(ftdi_txd),
+      .cts_n(0),
+      .dcd_n(0)
   );
 
 endmodule

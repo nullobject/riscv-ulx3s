@@ -1,9 +1,6 @@
 #include <stdint.h>
 
-#define RDRF 0
-#define TDRE 1
-
-volatile uint8_t *UART_DATA = (uint8_t *)0x4000;
+volatile uint8_t *UART = (uint8_t *)0x4000;
 
 void delay(uint32_t d) {
   for (uint32_t i = 0; i < d; i++) {
@@ -12,8 +9,8 @@ void delay(uint32_t d) {
 }
 
 void cout(char *a) {
-  for (; *a != 0; a++) {
-    *UART_DATA = *a;
+  while (*a) {
+    *UART = *a++;
   }
 }
 

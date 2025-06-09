@@ -27,7 +27,7 @@ module top (
   wire [31:0] work_ram_dout;
   reg         char_ram_ready;
   wire [31:0] char_ram_dout;
-  reg         uart_tx_active;
+  reg         uart_busy;
   // wire [ 7:0] uart_dout;
 
   // reset
@@ -55,7 +55,7 @@ module top (
     char_ram_ready <= char_ram_cs;
   end
 
-  wire uart_ready = uart_cs && !uart_tx_active;
+  wire uart_ready = uart_cs && !uart_busy;
 
   // decode CPU memory ready signal
   assign cpu_mem_ready = uart_ready || led_cs || char_ram_ready || work_ram_ready || rom_ready;
@@ -122,42 +122,15 @@ module top (
   );
 
   // UART
-  // reg uart_e_clk;
-  // reg uart_baud_clk;
-  // reg [7:0] baud_cnt = 0;
-  //
-  // always @(posedge clk_25mhz) begin
-  //   uart_e_clk <= !uart_e_clk;
-  //   uart_baud_clk <= baud_cnt > 81;
-  //   baud_cnt <= baud_cnt + 1;
-  //   if (baud_cnt > 162) baud_cnt <= 0;
-  // end
-  //
-  // acia uart (
-  //     .clk(clk_25mhz),
-  //     .reset(!rst_n),
-  //     .cs(uart_cs),
-  //     .e_clk(uart_e_clk),
-  //     .rw_n(!cpu_mem_wstrb[0]),
-  //     .rs(cpu_mem_addr[2]),
-  //     .data_in(cpu_mem_wdata[7:0]),
-  //     .data_out(uart_dout),
-  //     .txclk(uart_baud_clk),
-  //     .rxclk(uart_baud_clk),
-  //     .txdata(ftdi_rxd),
-  //     .rxdata(ftdi_txd),
-  //     .cts_n(0),
-  //     .dcd_n(0)
-  // );
-
   uart_tx #(
       .CLKS_PER_BIT(2604)
   ) uart (
-      .i_Clock(clk_25mhz),
-      .i_Tx_DV(uart_cs ? cpu_mem_wstrb[0] : 0),
-      .i_Tx_Byte(cpu_mem_wdata[7:0]),
-      .o_Tx_Active(uart_tx_active),
-      .o_Tx_Serial(ftdi_rxd)
+      .clk(clk_25mhz),
+      .rst_n(rst_n),
+      .busy(uart_busy),
+      .we(uart_cs ? cpu_mem_wstrb[0] : 0),
+      .din(cpu_mem_wdata[7:0]),
+      .tx(ftdi_rxd)
   );
 
 endmodule

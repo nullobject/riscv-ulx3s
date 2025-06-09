@@ -27,13 +27,13 @@ void write_text(char *s, uint16_t flags, uint8_t col, uint8_t row) {
 int __attribute__((noreturn)) main() {
   clear_text();
 
-  write_text("FILTER (1/2)                ++++\0", TEXT_INVERT, 0, 0);
-  write_text("FREQ    RES     ENV     MODE    \0", TEXT_NORMAL, 0, 2);
-  write_text("1.00    0.01    0.00    LOW PASS\0", TEXT_NORMAL, 0, 3);
-  write_text("----    ----    ----    ----    \0", TEXT_NORMAL, 0, 4);
-  write_text("ATK     DEC     SUS     REL     \0", TEXT_NORMAL, 0, 5);
-  write_text("0.64    1.74    0.34    0.44    \0", TEXT_NORMAL, 0, 6);
-  write_text("----    ----    ----    ----    \0", TEXT_NORMAL, 0, 7);
+  write_text("FILTER (1/2)                ++++", TEXT_INVERT, 0, 0);
+  write_text("FREQ    RES     ENV     MODE    ", TEXT_NORMAL, 0, 2);
+  write_text("1.00    0.01    0.00    LOW PASS", TEXT_NORMAL, 0, 3);
+  write_text("----    ----    ----    ----    ", TEXT_NORMAL, 0, 4);
+  write_text("ATK     DEC     SUS     REL     ", TEXT_NORMAL, 0, 5);
+  write_text("0.64    1.74    0.34    0.44    ", TEXT_NORMAL, 0, 6);
+  write_text("----    ----    ----    ----    ", TEXT_NORMAL, 0, 7);
 
   while (1) {
   }

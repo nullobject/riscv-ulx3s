@@ -12,11 +12,11 @@ module uart_tx #(
 );
 
   parameter IDLE = 0;
-  parameter TX_START_BIT = 1;
-  parameter TX_DATA_BITS = 2;
-  parameter TX_STOP_BIT = 3;
+  parameter START_BIT = 1;
+  parameter DATA_BITS = 2;
+  parameter STOP_BIT = 3;
 
-  reg [ 2:0] state = 0;
+  reg [ 1:0] state = 0;
   reg [15:0] count;
   reg [ 2:0] index;
   reg [ 7:0] data;
@@ -28,58 +28,52 @@ module uart_tx #(
       state <= IDLE;
     end else begin
       case (state)
+        // Wait for start signal to be asserted
         IDLE: begin
           tx    <= 1;
           count <= 0;
           index <= 0;
+          data  <= din;
 
-          if (we == 1'b1) begin
-            data  <= din;
-            state <= TX_START_BIT;
-          end else state <= IDLE;
+          if (we == 1) state <= START_BIT;
         end
 
-        TX_START_BIT: begin
+        // Send start bit
+        START_BIT: begin
           tx <= 0;
 
-          // Wait CLKS_PER_BIT-1 clock cycles for start bit to finish
           if (count < CLKS_PER_BIT - 1) begin
             count <= count + 1;
-            state <= TX_START_BIT;
           end else begin
+            state <= DATA_BITS;
             count <= 0;
-            state <= TX_DATA_BITS;
           end
         end
 
-        TX_DATA_BITS: begin
+        // Send data bits
+        DATA_BITS: begin
           tx <= data[index];
 
-          // Wait CLKS_PER_BIT-1 clock cycles for data bits to finish
           if (count < CLKS_PER_BIT - 1) begin
             count <= count + 1;
-            state <= TX_DATA_BITS;
           end else begin
             count <= 0;
 
-            // Check if we have sent out all bits
             if (index < 7) begin
               index <= index + 1;
-              state <= TX_DATA_BITS;
             end else begin
+              state <= STOP_BIT;
               index <= 0;
-              state <= TX_STOP_BIT;
             end
           end
         end
 
-        TX_STOP_BIT: begin
+        // Send stop bit
+        STOP_BIT: begin
           tx <= 1;
 
-          // Wait CLKS_PER_BIT-1 clock cycles for stop bit to finish
           if (count < CLKS_PER_BIT - 1) begin
             count <= count + 1;
-            state <= TX_STOP_BIT;
           end else begin
             state <= IDLE;
           end

@@ -36,7 +36,7 @@ module oled (
   reg [13:0] addr;
 
   wire start = state == SEND_COMMAND;
-  wire ready;
+  wire busy;
   wire next;
   wire [7:0] data;
   wire [7:0] rom_q;
@@ -70,7 +70,7 @@ module oled (
           if (next) begin
             addr <= addr == 'h3f ? 'h2000 : addr + 1;
           end
-          if (ready) begin
+          if (!busy) begin
             state <= counter == 0 ? IDLE : SEND_COMMAND;
           end
         end
@@ -83,7 +83,7 @@ module oled (
       .clk(clk),
       .rst_n(rst_n),
       .start(start),
-      .ready(ready),
+      .busy(busy),
       .next(next),
       .data(data),
       .oled_dc(oled_dc),
@@ -110,7 +110,7 @@ module oled_tx (
 
     // control signals
     input  start,
-    output ready,
+    output busy,
     output next,
 
     // data bus
@@ -132,8 +132,8 @@ module oled_tx (
   reg [ 2:0] state;
   reg [13:0] counter;
 
-  assign ready = state == IDLE;
-  assign next  = state == LATCH_COMMAND || state == LATCH_DATA;
+  assign busy = state != IDLE;
+  assign next = state == LATCH_COMMAND || state == LATCH_DATA;
 
   function [13:0] arity(input reg [7:0] cmd);
     case (cmd)

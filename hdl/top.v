@@ -41,10 +41,11 @@ module top (
   reg char_ram_ready;
   wire [31:0] char_ram_dout;
 
-  wire uart_valid;
-  wire uart_busy;
-  wire uart_ready = uart_cs && ((!cpu_mem_wstrb && uart_valid) || (cpu_mem_wstrb[0] && !uart_busy));
-  wire [7:0] uart_dout;
+  wire [7:0] uart_rx_dout;
+  wire uart_rx_full;
+  wire uart_tx_empty;
+  wire uart_ready = uart_cs &&
+    ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
 
   // reset
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
@@ -63,7 +64,7 @@ module top (
 
   // decode CPU read data bus
   assign cpu_mem_rdata =
-    uart_cs ? {24'h0, uart_dout} :
+    uart_cs ? {24'h0, uart_rx_dout} :
     led_cs ? {24'h0, led} :
     char_ram_cs ? char_ram_dout :
     work_ram_cs ? work_ram_dout :
@@ -130,8 +131,8 @@ module top (
       .clk(clk_25mhz),
       .rst_n(rst_n),
       .re(uart_cs && !cpu_mem_wstrb),
-      .dout(uart_dout),
-      .valid(uart_valid),
+      .dout(uart_rx_dout),
+      .full(uart_rx_full),
       .rx(ftdi_txd)
   );
 
@@ -142,7 +143,7 @@ module top (
       .rst_n(rst_n),
       .we(uart_cs && cpu_mem_wstrb[0]),
       .din(cpu_mem_wdata[7:0]),
-      .busy(uart_busy),
+      .empty(uart_tx_empty),
       .tx(ftdi_rxd)
   );
 

@@ -6,7 +6,7 @@ module uart_rx #(
 
     input            re,
     output reg [7:0] dout,
-    output reg       valid,
+    output reg       full,
 
     input rx
 );
@@ -19,18 +19,19 @@ module uart_rx #(
   reg [ 1:0] state = 0;
   reg [15:0] count;
   reg [ 2:0] index;
-  reg [ 7:0] data;
+  reg [ 7:0] shift_reg;
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       state <= IDLE;
     end else begin
+      if (re) full <= 0;
+
       case (state)
         IDLE: begin
-          if (re && !rx) state <= RX_START_BIT;
+          if (!full && !rx) state <= RX_START_BIT;
           count <= 0;
           index <= 0;
-          valid <= 0;
         end
 
         // Check middle of start bit to make sure it's still low
@@ -53,7 +54,7 @@ module uart_rx #(
             if (index == 7) state <= RX_STOP_BIT;
             count <= 0;
             index <= index + 1;
-            data = {rx, data[7:1]};
+            shift_reg = {rx, shift_reg[7:1]};
           end
         end
 
@@ -64,8 +65,8 @@ module uart_rx #(
           if (count == CLKS_PER_BIT - 1) begin
             state <= IDLE;
             count <= 0;
-            valid <= 1;
-            dout  <= data;
+            dout  <= shift_reg;
+            full  <= 1;
           end
         end
 

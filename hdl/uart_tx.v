@@ -4,9 +4,9 @@ module uart_tx #(
     input clk,
     input rst_n,
 
-    input        we,
-    input  [7:0] din,
-    output       busy,
+    input            we,
+    input      [7:0] din,
+    output reg       empty,
 
     output reg tx
 );
@@ -19,22 +19,24 @@ module uart_tx #(
   reg [ 1:0] state = 0;
   reg [15:0] count;
   reg [ 2:0] index;
-  reg [ 7:0] data;
-
-  assign busy = state != IDLE;
+  reg [ 7:0] shift_reg;
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       state <= IDLE;
+      empty <= 1;
     end else begin
       case (state)
         // Wait for start signal to be asserted
         IDLE: begin
-          if (we == 1) state <= START_BIT;
+          if (we == 1) begin
+            state <= START_BIT;
+            shift_reg <= din;
+            empty <= 0;
+          end
           count <= 0;
           index <= 0;
           tx <= 1;
-          data <= din;
         end
 
         // Send start bit
@@ -51,19 +53,22 @@ module uart_tx #(
         // Send data bits
         DATA_BITS: begin
           count <= count + 1;
-          tx <= data[0];
+          tx <= shift_reg[0];
 
           if (count == CLKS_PER_BIT - 1) begin
             if (index == 7) state <= STOP_BIT;
             count <= 0;
             index <= index + 1;
-            data  <= {0, data[7:1]};
+            shift_reg <= {0, shift_reg[7:1]};
           end
         end
 
         // Send stop bit
         STOP_BIT: begin
-          if (count == CLKS_PER_BIT - 1) state <= IDLE;
+          if (count == CLKS_PER_BIT - 1) begin
+            state <= IDLE;
+            empty <= 1;
+          end
           count <= count + 1;
           tx <= 1;
         end

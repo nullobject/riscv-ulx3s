@@ -42,7 +42,7 @@ module top (
   wire [31:0] char_ram_dout;
 
   wire uart_valid;
-  reg uart_busy;
+  wire uart_busy;
   wire uart_ready = uart_cs && ((!cpu_mem_wstrb && uart_valid) || (cpu_mem_wstrb[0] && !uart_busy));
   wire [7:0] uart_dout;
 
@@ -129,9 +129,9 @@ module top (
   ) uart_rx (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .valid(uart_valid),
       .re(uart_cs && !cpu_mem_wstrb),
       .dout(uart_dout),
+      .valid(uart_valid),
       .rx(ftdi_txd)
   );
 
@@ -140,9 +140,9 @@ module top (
   ) uart_tx (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .busy(uart_busy),
       .we(uart_cs && cpu_mem_wstrb[0]),
       .din(cpu_mem_wdata[7:0]),
+      .busy(uart_busy),
       .tx(ftdi_rxd)
   );
 

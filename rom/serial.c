@@ -1,5 +1,6 @@
 #include <stdint.h>
 
+volatile uint8_t *LED = (uint8_t *)0x3000;
 volatile uint8_t *UART = (uint8_t *)0x4000;
 
 void delay(uint32_t d) {
@@ -16,11 +17,10 @@ void cout(char *a) {
 
 int __attribute__((noreturn)) main() {
   char *line = "HELLO WORLD!\n\r";
-  char c = 0;
 
   while (1) {
-    line[0] = '0' + (7 & c++);
     cout(line);
+    *LED = *UART;
     delay(65535);
   }
 }

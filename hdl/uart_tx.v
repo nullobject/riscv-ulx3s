@@ -1,11 +1,11 @@
 module uart_tx #(
-    parameter CLKS_PER_BIT = 100
+    parameter CLKS_PER_BIT = 1000
 ) (
     input clk,
     input rst_n,
 
-    output       busy,
     input        we,
+    output       busy,
     input  [7:0] din,
 
     output reg tx

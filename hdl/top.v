@@ -11,30 +11,15 @@ module top (
 
   assign wifi_gpio0 = 1'b1;
 
-  reg  [ 5:0] reset_cnt = 0;
-  wire        rst_n = &reset_cnt & btn[0];
+  reg [5:0] reset_cnt = 0;
+  wire rst_n = &reset_cnt & btn[0];
 
-  wire        cpu_mem_valid;
-  wire        cpu_mem_ready;
+  wire cpu_mem_valid;
+  wire cpu_mem_ready;
   wire [31:0] cpu_mem_addr;
   wire [31:0] cpu_mem_wdata;
-  wire [ 3:0] cpu_mem_wstrb;
+  wire [3:0] cpu_mem_wstrb;
   wire [31:0] cpu_mem_rdata;
-
-  reg         rom_ready;
-  wire [31:0] rom_dout;
-  reg         work_ram_ready;
-  wire [31:0] work_ram_dout;
-  reg         char_ram_ready;
-  wire [31:0] char_ram_dout;
-  reg         uart_busy;
-  // wire [ 7:0] uart_dout;
-
-  // reset
-  always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
-
-  // LED
-  always @(posedge clk_25mhz) if (led_cs && cpu_mem_wstrb[0]) led <= cpu_mem_wdata[7:0];
 
   // chip select
   //
@@ -49,19 +34,36 @@ module top (
   wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0011;
   wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0100;
 
+  reg rom_ready;
+  wire [31:0] rom_dout;
+  reg work_ram_ready;
+  wire [31:0] work_ram_dout;
+  reg char_ram_ready;
+  wire [31:0] char_ram_dout;
+
+  wire uart_valid;
+  reg uart_busy;
+  wire uart_ready = uart_cs && ((!cpu_mem_wstrb && uart_valid) || (cpu_mem_wstrb[0] && !uart_busy));
+  wire [7:0] uart_dout;
+
+  // reset
+  always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
+
+  // LED
+  always @(posedge clk_25mhz) if (led_cs && cpu_mem_wstrb[0]) led <= cpu_mem_wdata[7:0];
+
   always @(posedge clk_25mhz) begin
     rom_ready      <= rom_cs;
     work_ram_ready <= work_ram_cs;
     char_ram_ready <= char_ram_cs;
   end
 
-  wire uart_ready = uart_cs && !uart_busy;
-
   // decode CPU memory ready signal
   assign cpu_mem_ready = uart_ready || led_cs || char_ram_ready || work_ram_ready || rom_ready;
 
   // decode CPU read data bus
   assign cpu_mem_rdata =
+    uart_cs ? {24'h0, uart_dout} :
     led_cs ? {24'h0, led} :
     char_ram_cs ? char_ram_dout :
     work_ram_cs ? work_ram_dout :
@@ -122,13 +124,24 @@ module top (
   );
 
   // UART
+  uart_rx #(
+      .CLKS_PER_BIT(2604)
+  ) uart_rx (
+      .clk(clk_25mhz),
+      .rst_n(rst_n),
+      .valid(uart_valid),
+      .re(uart_cs && !cpu_mem_wstrb),
+      .dout(uart_dout),
+      .rx(ftdi_txd)
+  );
+
   uart_tx #(
       .CLKS_PER_BIT(2604)
-  ) uart (
+  ) uart_tx (
       .clk(clk_25mhz),
       .rst_n(rst_n),
       .busy(uart_busy),
-      .we(uart_cs ? cpu_mem_wstrb[0] : 0),
+      .we(uart_cs && cpu_mem_wstrb[0]),
       .din(cpu_mem_wdata[7:0]),
       .tx(ftdi_rxd)
   );

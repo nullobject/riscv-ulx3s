@@ -36,9 +36,9 @@ $(FAKE_HEX):
 	mkdir -p $(BUILDDIR)
 	ecpbram -w 32 -d 1024 -g $@
 
-$(PROG_OUT): rom/$(PROG).c rom/start.s rom/linker_script.ld
+$(PROG_OUT): rom/$(PROG).c rom/start.S rom/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	$(CC) -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.s $<
+	$(CC) -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.S $<
 
 $(PROG_BIN): $(PROG_OUT)
 	$(OBJCOPY) -O binary $< $@

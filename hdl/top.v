@@ -9,7 +9,7 @@ module top (
     output [7:0] gn
 );
 
-  assign wifi_gpio0 = 1'b1;
+  assign wifi_gpio0 = 1;
 
   reg [5:0] reset_cnt = 0;
   wire rst_n = &reset_cnt & btn[0];
@@ -47,6 +47,8 @@ module top (
   wire uart_ready = uart_cs &&
     ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
 
+  wire [31:0] cpu_irq = {28'b0, uart_rx_full, 3'b0};
+
   // reset
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
 
@@ -64,8 +66,8 @@ module top (
 
   // decode CPU read data bus
   assign cpu_mem_rdata =
-    uart_cs ? {24'h0, uart_rx_dout} :
-    led_cs ? {24'h0, led} :
+    uart_cs ? {24'b0, uart_rx_dout} :
+    led_cs ? {24'b0, led} :
     char_ram_cs ? char_ram_dout :
     work_ram_cs ? work_ram_dout :
     rom_dout;
@@ -76,7 +78,9 @@ module top (
       .BARREL_SHIFTER(1),
       .COMPRESSED_ISA(1),
       .ENABLE_MUL(1),
-      .ENABLE_DIV(1)
+      .ENABLE_DIV(1),
+      .ENABLE_IRQ(1),
+      .ENABLE_IRQ_QREGS(0)
   ) cpu (
       .clk      (clk_25mhz),
       .resetn   (rst_n),
@@ -85,7 +89,8 @@ module top (
       .mem_addr (cpu_mem_addr),
       .mem_wdata(cpu_mem_wdata),
       .mem_wstrb(cpu_mem_wstrb),
-      .mem_rdata(cpu_mem_rdata)
+      .mem_rdata(cpu_mem_rdata),
+      .irq      (cpu_irq)
   );
 
   // ROM

@@ -24,6 +24,7 @@ module uart_rx #(
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       state <= IDLE;
+      full  <= 0;
     end else begin
       if (re) full <= 0;
 

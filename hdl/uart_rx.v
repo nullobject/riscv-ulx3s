@@ -7,6 +7,7 @@ module uart_rx #(
     input            re,
     output reg [7:0] dout,
     output reg       full,
+    output reg       done,
 
     input rx
 );
@@ -33,6 +34,7 @@ module uart_rx #(
           if (!full && !rx) state <= RX_START_BIT;
           count <= 0;
           index <= 0;
+          done  <= 0;
         end
 
         // Check middle of start bit to make sure it's still low
@@ -68,6 +70,7 @@ module uart_rx #(
             count <= 0;
             dout  <= shift_reg;
             full  <= 1;
+            done  <= 1;
           end
         end
 

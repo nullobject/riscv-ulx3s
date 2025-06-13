@@ -7,6 +7,7 @@ module uart_tx #(
     input            we,
     input      [7:0] din,
     output reg       empty,
+    output reg       done,
 
     output reg tx
 );
@@ -36,6 +37,7 @@ module uart_tx #(
           end
           count <= 0;
           index <= 0;
+          done <= 0;
           tx <= 1;
         end
 
@@ -70,6 +72,7 @@ module uart_tx #(
             empty <= 1;
           end
           count <= count + 1;
+          done <= 1;
           tx <= 1;
         end
 

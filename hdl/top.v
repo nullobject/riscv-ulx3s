@@ -43,11 +43,12 @@ module top (
 
   wire [7:0] uart_rx_dout;
   wire uart_rx_full;
+  wire uart_rx_done;
   wire uart_tx_empty;
   wire uart_ready = uart_cs &&
     ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
 
-  wire [31:0] cpu_irq = {28'b0, uart_rx_full, 3'b0};
+  wire [31:0] cpu_irq = {28'b0, uart_rx_done, 3'b0};
 
   // reset
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
@@ -138,6 +139,7 @@ module top (
       .re(uart_cs && !cpu_mem_wstrb),
       .dout(uart_rx_dout),
       .full(uart_rx_full),
+      .done(uart_rx_done),
       .rx(ftdi_txd)
   );
 

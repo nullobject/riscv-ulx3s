@@ -6,7 +6,9 @@ module top (
     output wifi_gpio0,
     output reg [7:0] led,
     output [7:0] gp,
-    output [7:0] gn
+    output [7:0] gn,
+    output serial_tx,
+    input serial_rx
 );
 
   assign wifi_gpio0 = 1;
@@ -140,9 +142,11 @@ module top (
       .dout(uart_rx_dout),
       .full(uart_rx_full),
       .done(uart_rx_done),
-      .rx(ftdi_txd)
+      .rx(!serial_rx)
   );
 
+  wire uart_tx_tx;
+  assign serial_tx = !uart_tx_tx;
   uart_tx #(
       .CLKS_PER_BIT(2604)
   ) uart_tx (
@@ -151,7 +155,7 @@ module top (
       .we(uart_cs && cpu_mem_wstrb[0]),
       .din(cpu_mem_wdata[7:0]),
       .empty(uart_tx_empty),
-      .tx(ftdi_rxd)
+      .tx(uart_tx_tx)
   );
 
 endmodule

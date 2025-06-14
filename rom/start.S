@@ -6,6 +6,10 @@ reset_vec:
   picorv32_maskirq_insn(zero, zero)
   j start
 
+/**
+ * Stores all registers on the stack, calls the C interrupt handler, and then
+ * loads all registers from the stack.
+ */
 .balign 16
 irq_vec:
   /* save registers */
@@ -84,6 +88,10 @@ irq_vec:
   /* all done */
   picorv32_retirq_insn()
 
+/**
+ * Initialises the DATA and BSS sections in RAM, before calling the main C
+ * function.
+ */
 start:
   /* copy data section */
   la a0, _etext

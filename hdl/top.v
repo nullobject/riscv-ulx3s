@@ -134,7 +134,8 @@ module top (
 
   // UART
   uart_rx #(
-      .CLKS_PER_BIT(2604)
+      .CLKS_PER_BIT(2604),
+      .INVERT(1)
   ) uart_rx (
       .clk(clk_25mhz),
       .rst_n(rst_n),
@@ -142,20 +143,19 @@ module top (
       .dout(uart_rx_dout),
       .full(uart_rx_full),
       .done(uart_rx_done),
-      .rx(!serial_rx)
+      .rx(serial_rx)
   );
 
-  wire uart_tx_tx;
-  assign serial_tx = !uart_tx_tx;
   uart_tx #(
-      .CLKS_PER_BIT(2604)
+      .CLKS_PER_BIT(2604),
+      .INVERT(1)
   ) uart_tx (
       .clk(clk_25mhz),
       .rst_n(rst_n),
       .we(uart_cs && cpu_mem_wstrb[0]),
       .din(cpu_mem_wdata[7:0]),
       .empty(uart_tx_empty),
-      .tx(uart_tx_tx)
+      .tx(serial_tx)
   );
 
 endmodule

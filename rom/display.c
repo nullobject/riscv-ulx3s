@@ -10,6 +10,8 @@ volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
 #define TEXT_NORMAL 0
 #define TEXT_INVERT 8
 
+void irq() {}
+
 void clear_text() {
   for (int i = 0; i < 256; i++) {
     CHAR_RAM[i] = 0;

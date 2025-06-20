@@ -3,6 +3,8 @@
 // #define LED ((uint8_t *)0x3000)
 volatile uint8_t *LED = (uint8_t *)0x3000;
 
+void irq() {}
+
 void delay(uint32_t d) {
   for (uint32_t i = 0; i < d; i++) {
     asm("nop");

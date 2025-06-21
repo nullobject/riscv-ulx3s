@@ -5,6 +5,8 @@ BUILDDIR = build
 CC = riscv32-unknown-elf-gcc
 OBJCOPY = riscv32-unknown-elf-objcopy
 
+CFLAGS = -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug
+
 PROG = display
 PROG_OUT = $(BUILDDIR)/$(PROG).out
 PROG_BIN = $(BUILDDIR)/$(PROG).bin
@@ -38,7 +40,7 @@ $(FAKE_HEX):
 
 $(PROG_OUT): rom/$(PROG).c rom/start.S rom/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	$(CC) -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug -o $@ rom/start.S $<
+	$(CC) $(CFLAGS) -o $@ rom/start.S $<
 
 $(PROG_BIN): $(PROG_OUT)
 	$(OBJCOPY) -O binary $< $@

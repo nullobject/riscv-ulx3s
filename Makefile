@@ -5,7 +5,7 @@ BUILDDIR = build
 CC = riscv32-unknown-elf-gcc
 OBJCOPY = riscv32-unknown-elf-objcopy
 
-PROG = serial
+PROG = display
 PROG_OUT = $(BUILDDIR)/$(PROG).out
 PROG_BIN = $(BUILDDIR)/$(PROG).bin
 PROG_HEX = $(BUILDDIR)/$(PROG).hex

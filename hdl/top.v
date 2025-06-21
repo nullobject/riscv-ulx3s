@@ -27,12 +27,14 @@ module top (
   //
   // 0000-0FFF ROM
   // 1000-1FFF RAM
-  // 2000-2100 CHAR RAM
+  // 2000-21FF CHAR RAM
+  // 2800-28FF PARAM RAM
   // 3000      LED
   // 4000      UART
   wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0000;
   wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0001;
-  wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0010;
+  wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:11] == 5'b0010_0;
+  wire param_ram_cs = cpu_mem_valid && cpu_mem_addr[15:11] == 5'b0010_1;
   wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0011;
   wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0100;
 
@@ -42,6 +44,8 @@ module top (
   wire [31:0] work_ram_dout;
   reg char_ram_ready;
   wire [31:0] char_ram_dout;
+  reg param_ram_ready;
+  wire [31:0] param_ram_dout;
 
   wire [7:0] uart_rx_dout;
   wire uart_rx_full;
@@ -50,27 +54,37 @@ module top (
   wire uart_ready = uart_cs &&
     ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
 
+  // IRQ bitmask
   wire [31:0] cpu_irq = {28'b0, uart_rx_done, 3'b0};
 
-  // reset
+  // Update reset count register
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
 
-  // LED
+  // Update LED register
   always @(posedge clk_25mhz) if (led_cs && cpu_mem_wstrb[0]) led <= cpu_mem_wdata[7:0];
 
+  // Update memory ready registers
   always @(posedge clk_25mhz) begin
-    rom_ready      <= rom_cs;
-    work_ram_ready <= work_ram_cs;
-    char_ram_ready <= char_ram_cs;
+    rom_ready       <= rom_cs;
+    work_ram_ready  <= work_ram_cs;
+    char_ram_ready  <= char_ram_cs;
+    param_ram_ready <= param_ram_cs;
   end
 
-  // decode CPU memory ready signal
-  assign cpu_mem_ready = uart_ready || led_cs || char_ram_ready || work_ram_ready || rom_ready;
+  // Set CPU memory ready signal
+  assign cpu_mem_ready =
+    rom_ready ||
+    work_ram_ready ||
+    char_ram_ready ||
+    param_ram_ready ||
+    uart_ready ||
+    led_cs;
 
-  // decode CPU read data bus
+  // Set CPU memory read data bus
   assign cpu_mem_rdata =
     uart_cs ? {24'b0, uart_rx_dout} :
     led_cs ? {24'b0, led} :
+    param_ram_cs ? param_ram_dout :
     char_ram_cs ? char_ram_dout :
     work_ram_cs ? work_ram_dout :
     rom_dout;
@@ -130,6 +144,16 @@ module top (
       .oled_dc(gp[3]),
       .oled_e(gp[2]),
       .oled_dout(gn)
+  );
+
+  // MIDI
+  midi midi (
+      .clk(clk_25mhz),
+      .rst_n(rst_n),
+      .param_ram_we(param_ram_cs ? cpu_mem_wstrb : 0),
+      .param_ram_addr(cpu_mem_addr[7:2]),
+      .param_ram_data(cpu_mem_wdata),
+      .param_ram_q(param_ram_dout)
   );
 
   // UART

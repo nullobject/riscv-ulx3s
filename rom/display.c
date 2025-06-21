@@ -1,7 +1,8 @@
 #include <stdint.h>
 
-// #define CHAR_RAM ((uint16_t *)0x2000)
 volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
+volatile uint16_t *PARAM_RAM = (uint16_t *)0x2800;
+volatile uint8_t *LED = (uint8_t *)0x3000;
 
 // Address offset of the first printable ASCII character
 #define ASCII_OFFSET 0x20
@@ -11,6 +12,12 @@ volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
 #define TEXT_INVERT 8
 
 void irq() {}
+
+void clear_params() {
+  for (int i = 0; i < 128; i++) {
+    PARAM_RAM[i] = 0;
+  }
+}
 
 void clear_text() {
   for (int i = 0; i < 256; i++) {
@@ -27,7 +34,11 @@ void write_text(char *s, uint16_t flags, uint8_t col, uint8_t row) {
 }
 
 int __attribute__((noreturn)) main() {
+  clear_params();
   clear_text();
+
+  *PARAM_RAM = 0x00FF;
+  *LED = *PARAM_RAM;
 
   write_text("FILTER (1/2)                ++++", TEXT_INVERT, 0, 0);
   write_text("FREQ    RES     ENV     MODE    ", TEXT_NORMAL, 0, 2);

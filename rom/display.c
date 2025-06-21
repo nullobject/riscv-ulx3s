@@ -4,6 +4,8 @@ volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
 volatile uint16_t *PARAM_RAM = (uint16_t *)0x2800;
 volatile uint8_t *LED = (uint8_t *)0x3000;
 
+const char digit[] = "0123456789ABCDEF";
+
 // Address offset of the first printable ASCII character
 #define ASCII_OFFSET 0x20
 
@@ -25,7 +27,7 @@ void clear_text() {
   }
 }
 
-void write_text(char *s, uint16_t flags, uint8_t col, uint8_t row) {
+void write_text(const char *s, uint16_t flags, uint8_t col, uint8_t row) {
   uint8_t i = (row << 5) + col;
   while (*s) {
     char c = *s++ - ASCII_OFFSET;
@@ -33,14 +35,26 @@ void write_text(char *s, uint16_t flags, uint8_t col, uint8_t row) {
   }
 }
 
+void write_ntext(int n, const char *s, uint16_t flags, uint8_t col,
+                 uint8_t row) {
+  uint8_t j = (row << 5) + col;
+  for (int i = 0; i < n; i++) {
+    char c = *s++ - ASCII_OFFSET;
+    CHAR_RAM[j++] = (flags << 12) | c;
+  }
+}
+
 int __attribute__((noreturn)) main() {
   clear_params();
   clear_text();
 
+  uint16_t n = 0x1234;
+
   *PARAM_RAM = 0x00FF;
   *LED = *PARAM_RAM;
 
-  write_text("FILTER (1/2)                ++++", TEXT_INVERT, 0, 0);
+  write_ntext(1, &digit[n >> 12], TEXT_NORMAL, 0, 0);
+  // write_text("FILTER (1/2)                ++++", TEXT_INVERT, 0, 0);
   write_text("FREQ    RES     ENV     MODE    ", TEXT_NORMAL, 0, 2);
   write_text("1.00    0.01    0.00    LOW PASS", TEXT_NORMAL, 0, 3);
   write_text("----    ----    ----    ----    ", TEXT_NORMAL, 0, 4);

@@ -12,7 +12,7 @@ reset_vec:
  */
 .balign 16
 irq_vec:
-  /* save registers */
+  /* Save registers */
 	addi sp, sp, -128
 	sw x0,   0*4(sp)
 	sw x1,   1*4(sp)
@@ -47,10 +47,10 @@ irq_vec:
 	sw x30, 30*4(sp)
 	sw x31, 31*4(sp)
 
-	/* call interrupt handler */
+	/* Call interrupt handler */
   jal ra, irq
 
-  /* load registers */
+  /* Load registers */
 	lw x0,   0*4(sp)
 	lw x1,   1*4(sp)
 	lw x2,   2*4(sp)
@@ -85,35 +85,36 @@ irq_vec:
 	lw x31, 31*4(sp)
 	addi sp, sp, 128
 
-  /* all done */
+  /* All done */
   picorv32_retirq_insn()
 
-/**
- * Initialises the DATA and BSS sections in RAM, before calling the main C
- * function.
- */
 start:
-  /* copy data section */
+  /* Copy DATA section */
   la a0, _etext
   la a1, _sdata
   la a2, _edata
-  bge a1, a2, end_init_data
-loop_init_data:
+  bge a1, a2, _end_init_data
+_loop_init_data:
   lw a3, 0(a0)
   sw a3, 0(a1)
   addi a0, a0, 4
   addi a1, a1, 4
-  blt a1, a2, loop_init_data
-end_init_data:
+  blt a1, a2, _loop_init_data
+_end_init_data:
 
-  /* zero-init bss section */
+  /* Zero-init BSS section */
   la a0, _sbss
   la a1, _ebss
-  bge a0, a1, end_init_bss
-loop_init_bss:
+  bge a0, a1, _end_init_bss
+_loop_init_bss:
   sw zero, 0(a0)
   addi a0, a0, 4
-  blt a0, a1, loop_init_bss
-end_init_bss:
+  blt a0, a1, _loop_init_bss
+_end_init_bss:
 
-  j main
+  /* Jump to C code */
+  call main
+
+  /* In case main returns, loop forever */
+_loop:
+  j _loop

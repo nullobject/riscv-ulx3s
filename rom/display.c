@@ -66,5 +66,6 @@ int __attribute__((noreturn)) main() {
   write_uint16(*PARAM_RAM, TEXT_NORMAL, 0, 3);
 
   while (1) {
+    /* do nothing */
   }
 }

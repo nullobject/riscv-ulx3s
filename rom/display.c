@@ -4,10 +4,7 @@ volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
 volatile uint16_t *PARAM_RAM = (uint16_t *)0x2800;
 volatile uint8_t *LED = (uint8_t *)0x3000;
 
-const char digit[] = "0123456789ABCDEF";
-
-// Address offset of the first printable ASCII character
-#define ASCII_OFFSET 0x20
+const char HEX_DIGITS[] = "0123456789ABCDEF";
 
 // Text flags
 #define TEXT_NORMAL 0
@@ -30,18 +27,16 @@ void clear_text() {
 void write_text(const char *s, uint16_t flags, uint8_t col, uint8_t row) {
   uint8_t i = (row << 5) + col;
   while (*s) {
-    char c = *s++ - ASCII_OFFSET;
+    char c = *s++;
     CHAR_RAM[i++] = (flags << 12) | c;
   }
 }
 
 void write_uint16(uint16_t n, uint16_t flags, uint8_t col, uint8_t row) {
   uint8_t j = (row << 5) + col;
-  CHAR_RAM[j++] = '$' - ASCII_OFFSET;
+  CHAR_RAM[j++] = '$';
   for (int i = 3; i >= 0; i--) {
-    uint8_t k = n >> (i << 2);
-    char s = digit[k & 0x0F];
-    char c = s - ASCII_OFFSET;
+    char c = HEX_DIGITS[(n >> (i << 2)) & 0x0F];
     CHAR_RAM[j++] = (flags << 12) | c;
   }
 }

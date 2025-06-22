@@ -48,7 +48,7 @@ $(PROG_BIN): $(PROG_OUT)
 $(PROG_HEX): $(PROG_OUT)
 	$(OBJCOPY) -O verilog --verilog-data-width=4 $< $@
 
-$(BUILDDIR)/%.json: $(SRC) $(FAKE_HEX)
+$(BUILDDIR)/%.json: $(SRC) $(FAKE_HEX) rom/oled.hex rom/tiles.hex
 	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(SRC)
 
 $(BUILDDIR)/%.config: $(PIN_DEF) $(BUILDDIR)/%.json

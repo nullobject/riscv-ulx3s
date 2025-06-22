@@ -1,4 +1,6 @@
-module layer_processor (
+module layer_processor #(
+    parameter TILE_COUNT = 256
+) (
     input clk,
     input en,
 
@@ -6,10 +8,15 @@ module layer_processor (
     output [ 7:0] ram_addr,
     input  [15:0] ram_data,
 
-    // pixel data
+    // Pixel data
     input  [12:0] pixel_addr,
     output [ 7:0] pixel_data
 );
+
+  localparam TILE_CODE_WIDTH = $clog2(TILE_COUNT);
+  localparam TILE_SIZE_BYTES = 32;
+  localparam TILE_ROM_DEPTH = TILE_COUNT * TILE_SIZE_BYTES / 4;
+  localparam TILE_ROM_ADDR_WIDTH = $clog2(TILE_ROM_DEPTH);
 
   wire [2:0] row = pixel_addr[12:10];
   wire [4:0] col = pixel_addr[6:2];
@@ -19,8 +26,8 @@ module layer_processor (
   reg [15:0] tile;
   reg latch_tile;
   wire tile_invert = tile[15];
-  wire [5:0] tile_code = tile[5:0];
-  wire [8:0] tile_rom_addr = {tile_code, offset_y};
+  wire [TILE_CODE_WIDTH-1:0] tile_code = tile[TILE_CODE_WIDTH-1:0];
+  wire [TILE_ROM_ADDR_WIDTH-1:0] tile_rom_addr = {tile_code, offset_y};
   wire [31:0] tile_rom_dout;
 
   // A byte of tile ROM data contains two pixels
@@ -47,7 +54,7 @@ module layer_processor (
 
   rom #(
       .MEM_INIT_FILE("rom/tiles.hex"),
-      .DEPTH(512),
+      .DEPTH(TILE_ROM_DEPTH),
       .DATA_WIDTH(32)
   ) tile_rom (
       .clk(clk),

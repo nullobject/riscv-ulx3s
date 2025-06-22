@@ -6,6 +6,14 @@ volatile uint8_t *LED = (uint8_t *)0x3000;
 
 const char HEX_DIGITS[] = "0123456789ABCDEF";
 
+const char TOP_BAR[] = {196, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197,
+                        197, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197,
+                        197, 197, 197, 197, 197, 197, 197, 197, 197, 212, 0};
+
+const char BOT_BAR[] = {204, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205,
+                        205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205,
+                        205, 205, 205, 205, 205, 205, 205, 205, 205, 220, 0};
+
 // Text flags
 #define TEXT_NORMAL 0
 #define TEXT_INVERT 8
@@ -47,12 +55,15 @@ int __attribute__((noreturn)) main() {
 
   *PARAM_RAM = 0x3FFF;
 
-  write_text("FILTER (1/2)                ++++", TEXT_INVERT, 0, 0);
+  write_text(TOP_BAR, TEXT_NORMAL, 0, 0);
+  write_text(BOT_BAR, TEXT_NORMAL, 0, 7);
+
   write_text("FREQ    RES     ENV     MODE    ", TEXT_NORMAL, 0, 2);
   write_text("1.00    0.01    0.00    LOW PASS", TEXT_NORMAL, 0, 3);
-  write_uint16(*PARAM_RAM, TEXT_NORMAL, 0, 3);
   write_text("ATK     DEC     SUS     REL     ", TEXT_NORMAL, 0, 5);
   write_text("0.64    1.74    0.34    0.44    ", TEXT_NORMAL, 0, 6);
+
+  write_uint16(*PARAM_RAM, TEXT_NORMAL, 0, 3);
 
   while (1) {
   }

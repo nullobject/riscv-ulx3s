@@ -1,7 +1,7 @@
 /* verilator lint_off DECLFILENAME */
 
 /**
- * A controller for OLED displays using the SSD1322 driver.
+ * OLED display controller for the SSD1322 driver.
  *
  * On reset, it begins the initialisation sequence to configure the OLED
  * display. After the display has been initiaised, the controller continually
@@ -11,12 +11,12 @@ module oled (
     input clk,
     input rst_n,
 
-    // pixel data
+    // Pixel data
     output        pixel_re,
     output [12:0] pixel_addr,
     input  [ 7:0] pixel_data,
 
-    // OLED
+    // OLED signals
     output       oled_cs,
     output       oled_rst,
     output       oled_dc,
@@ -24,7 +24,7 @@ module oled (
     output [7:0] oled_dout
 );
 
-  // states
+  // States
   localparam INIT = 0;
   localparam IDLE = 1;
   localparam BLIT = 2;
@@ -104,25 +104,28 @@ module oled (
 
 endmodule
 
+/**
+ * Transmits a command byte and zero or more data bytes to the OLED display.
+ */
 module oled_tx (
     input clk,
     input rst_n,
 
-    // control signals
+    // Control signals
     input  start,
     output busy,
     output next,
 
-    // data bus
+    // Data bus
     input [7:0] data,
 
-    // OLED
+    // OLED signals
     output reg oled_dc,
     output reg oled_e,
     output reg [7:0] oled_dout
 );
 
-  // states
+  // States
   localparam IDLE = 0;
   localparam LOAD_COMMAND = 1;
   localparam LATCH_COMMAND = 2;

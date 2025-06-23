@@ -47,7 +47,7 @@ irq_vec:
 	sw x30, 30*4(sp)
 	sw x31, 31*4(sp)
 
-	/* Call interrupt handler */
+  /* Jump to C code */
   jal ra, irq
 
   /* Load registers */

@@ -1,3 +1,6 @@
+/**
+ * Renders the character layer.
+ */
 module layer_processor #(
     parameter TILE_COUNT = 256
 ) (
@@ -30,7 +33,7 @@ module layer_processor #(
   wire [TILE_ROM_ADDR_WIDTH-1:0] tile_rom_addr = {tile_code, offset_y};
   wire [31:0] tile_rom_dout;
 
-  // A byte of tile ROM data contains two pixels
+  // One byte of tile ROM data contains two pixels
   wire [7:0] tile_rom_byte =
       offset_x == 0 ? tile_rom_dout[31:24] :
       offset_x == 1 ? tile_rom_dout[23:16] :
@@ -38,11 +41,11 @@ module layer_processor #(
       tile_rom_dout[7:0];
 
   assign ram_addr =
-      // load first tile
+      // Load first tile
       en == 0 ? 0 :
-      // load first tile in next row
+      // Load first tile in next row
       col == 31 && offset_y == 7 ? {row + 1'h1, 5'h0} :
-      // load next tile in current row
+      // Load next tile in current row
       {row, col + 1'h1};
 
   always @(posedge clk) begin

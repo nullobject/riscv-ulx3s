@@ -5,11 +5,15 @@ module uart_rx #(
     input clk,
     input rst_n,
 
-    input            re,
-    output reg [7:0] dout,
-    output reg       full,
-    output reg       done,
+    // Control signals
+    input      re,
+    output reg full,
+    output reg done,
 
+    // Data bus
+    output reg [7:0] dout,
+
+    // Serial data
     input rx
 );
 

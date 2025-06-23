@@ -22,13 +22,13 @@ module midi (
   ) param_ram (
       .clk(clk),
 
-      // port A
+      // Port A
       .we_a(param_ram_we),
       .addr_a(param_ram_addr[7:2]),
       .data_a(param_ram_data),
       .q_a(param_ram_q),
 
-      // port B
+      // Port B
       .addr_b(param_ram_addr_b),
       .q_b(param_ram_q_b)
   );

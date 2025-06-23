@@ -5,11 +5,15 @@ module uart_tx #(
     input clk,
     input rst_n,
 
-    input            we,
-    input      [7:0] din,
-    output reg       empty,
-    output reg       done,
+    // Control signals
+    input      we,
+    output reg empty,
+    output reg done,
 
+    // Data bus
+    input [7:0] din,
+
+    // Serial data
     output tx
 );
 

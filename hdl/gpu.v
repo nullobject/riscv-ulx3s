@@ -1,17 +1,17 @@
 /**
- * Renders tilemap layers.
+ * Renders tilemap layers to the OLED display.
  */
 module gpu (
     input clk,
     input rst_n,
 
-    // character RAM
+    // Character RAM
     input  [ 3:0] char_ram_we,
     input  [ 8:2] char_ram_addr,
     input  [31:0] char_ram_data,
     output [31:0] char_ram_q,
 
-    // OLED
+    // OLED signals
     output       oled_cs,
     output       oled_rst,
     output       oled_dc,
@@ -33,13 +33,13 @@ module gpu (
   ) char_ram (
       .clk(clk),
 
-      // port A
+      // Port A
       .we_a(char_ram_we),
       .addr_a(char_ram_addr[8:2]),
       .data_a(char_ram_data),
       .q_a(char_ram_q),
 
-      // port B
+      // Port B
       .addr_b(char_ram_addr_b),
       .q_b(char_ram_q_b)
   );

@@ -23,7 +23,7 @@ module top (
   wire [3:0] cpu_mem_wstrb;
   wire [31:0] cpu_mem_rdata;
 
-  // chip select
+  // Chip select
   //
   // 0000-0FFF ROM
   // 1000-1FFF RAM

@@ -5,13 +5,13 @@ module dual_port_ram #(
 ) (
     input clk,
 
-    // port A
+    // Port A
     input [3:0] we_a,
     input [ADDR_WIDTH_A-1:0] addr_a,
     input [31:0] data_a,
     output reg [31:0] q_a,
 
-    // port B
+    // Port B
     input [ADDR_WIDTH_B-1:0] addr_b,
     output reg [15:0] q_b
 );

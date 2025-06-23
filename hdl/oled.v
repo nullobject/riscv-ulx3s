@@ -1,11 +1,10 @@
-/* verilator lint_off DECLFILENAME */
-
 /**
  * OLED display controller for the SSD1322 driver.
  *
- * On reset, it begins the initialisation sequence to configure the OLED
- * display. After the display has been initiaised, the controller continually
- * copies the contents of the framebuffer to the display.
+ * When the reset signal is asserted, the controller executes the boot
+ * sequence from ROM to initialize the OLED display. Once the display has been
+ * initiaized, the contents of the framebuffer is repeatedly written to the
+ * OLED display.
  */
 module oled (
     input clk,
@@ -79,7 +78,18 @@ module oled (
     end
   end
 
-  oled_tx oled_tx (
+  // ROM containing the boot sequence for the OLED display
+  rom #(
+      .MEM_INIT_FILE("rom/oled.hex"),
+      .DEPTH(64),
+      .DATA_WIDTH(8)
+  ) boot_rom (
+      .clk(clk),
+      .addr(addr[5:0]),
+      .q(rom_q)
+  );
+
+  command_tx command_tx (
       .clk(clk),
       .rst_n(rst_n),
       .start(start),
@@ -91,23 +101,12 @@ module oled (
       .oled_dout(oled_dout)
   );
 
-  // ROM containing initialisation sequence for the OLED display
-  rom #(
-      .MEM_INIT_FILE("rom/oled.hex"),
-      .DEPTH(64),
-      .DATA_WIDTH(8)
-  ) oled_rom (
-      .clk(clk),
-      .addr(addr[5:0]),
-      .q(rom_q)
-  );
-
 endmodule
 
 /**
  * Transmits a command byte and zero or more data bytes to the OLED display.
  */
-module oled_tx (
+module command_tx (
     input clk,
     input rst_n,
 

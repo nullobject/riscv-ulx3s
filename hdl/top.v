@@ -157,29 +157,21 @@ module top (
   );
 
   // UART
-  uart_rx #(
+  uart #(
       .CLKS_PER_BIT(2604),
       .INVERT(1)
-  ) uart_rx (
-      .clk(clk_25mhz),
-      .rst_n(rst_n),
-      .re(uart_cs && !cpu_mem_wstrb),
-      .dout(uart_rx_dout),
-      .full(uart_rx_full),
-      .done(uart_rx_done),
-      .rx(serial_rx)
-  );
-
-  uart_tx #(
-      .CLKS_PER_BIT(2604),
-      .INVERT(1)
-  ) uart_tx (
+  ) uart (
       .clk(clk_25mhz),
       .rst_n(rst_n),
       .we(uart_cs && cpu_mem_wstrb[0]),
-      .din(cpu_mem_wdata[7:0]),
+      .re(uart_cs && !cpu_mem_wstrb),
       .empty(uart_tx_empty),
-      .tx(serial_tx)
+      .full(uart_rx_full),
+      .done(uart_rx_done),
+      .din(cpu_mem_wdata[7:0]),
+      .dout(uart_rx_dout),
+      .tx(serial_tx),
+      .rx(serial_rx)
   );
 
 endmodule

@@ -17,10 +17,11 @@ module uart_rx #(
     input rx
 );
 
-  parameter IDLE = 0;
-  parameter RX_START_BIT = 1;
-  parameter RX_DATA_BITS = 2;
-  parameter RX_STOP_BIT = 3;
+  // States
+  localparam IDLE = 0;
+  localparam RX_START_BIT = 1;
+  localparam RX_DATA_BITS = 2;
+  localparam RX_STOP_BIT = 3;
 
   reg [1:0] state = 0;
   reg [15:0] count;

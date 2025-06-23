@@ -17,17 +17,18 @@ module uart_tx #(
     output tx
 );
 
-  parameter IDLE = 0;
-  parameter START_BIT = 1;
-  parameter DATA_BITS = 2;
-  parameter STOP_BIT = 3;
+  // States
+  localparam IDLE = 0;
+  localparam START_BIT = 1;
+  localparam DATA_BITS = 2;
+  localparam STOP_BIT = 3;
 
   reg [1:0] state = 0;
   reg [15:0] count;
   reg [2:0] index;
   reg [7:0] shift_reg;
-
   reg serial_tx;
+
   assign tx = INVERT ? !serial_tx : serial_tx;
 
   always @(posedge clk or negedge rst_n) begin

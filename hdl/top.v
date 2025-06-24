@@ -7,8 +7,10 @@ module top (
     output reg [7:0] led,
     output [7:0] gp,
     output [7:0] gn,
-    output serial_tx,
-    input serial_rx
+    output ser_tx,
+    input ser_rx,
+    input enc_a,
+    input enc_b
 );
 
   assign wifi_gpio0 = 1;
@@ -28,15 +30,15 @@ module top (
   // 0000-0FFF ROM
   // 1000-1FFF RAM
   // 2000-21FF CHAR RAM
-  // 2800-28FF PARAM RAM
   // 3000      LED
   // 4000      UART
+  // 5000      ENCODERS
   wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0000;
   wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0001;
-  wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:11] == 5'b0010_0;
-  wire param_ram_cs = cpu_mem_valid && cpu_mem_addr[15:11] == 5'b0010_1;
+  wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0010;
   wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0011;
   wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0100;
+  wire encoder_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0101;
 
   reg rom_ready;
   wire [31:0] rom_dout;
@@ -44,13 +46,13 @@ module top (
   wire [31:0] work_ram_dout;
   reg char_ram_ready;
   wire [31:0] char_ram_dout;
-  reg param_ram_ready;
-  wire [31:0] param_ram_dout;
+  reg encoder_ready;
+  wire [15:0] encoder_dout;
 
   wire [7:0] uart_rx_dout;
+  wire uart_tx_empty;
   wire uart_rx_full;
   wire uart_rx_done;
-  wire uart_tx_empty;
   wire uart_ready = uart_cs &&
     ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
 
@@ -65,10 +67,10 @@ module top (
 
   // Update memory ready registers
   always @(posedge clk_25mhz) begin
-    rom_ready       <= rom_cs;
-    work_ram_ready  <= work_ram_cs;
-    char_ram_ready  <= char_ram_cs;
-    param_ram_ready <= param_ram_cs;
+    rom_ready      <= rom_cs;
+    work_ram_ready <= work_ram_cs;
+    char_ram_ready <= char_ram_cs;
+    encoder_ready  <= encoder_cs;
   end
 
   // Set CPU memory ready signal
@@ -76,15 +78,15 @@ module top (
     rom_ready ||
     work_ram_ready ||
     char_ram_ready ||
-    param_ram_ready ||
+    encoder_ready ||
     uart_ready ||
     led_cs;
 
   // Set CPU memory read data bus
   assign cpu_mem_rdata =
+    encoder_cs ? {16'b0, encoder_dout} :
     uart_cs ? {24'b0, uart_rx_dout} :
     led_cs ? {24'b0, led} :
-    param_ram_cs ? param_ram_dout :
     char_ram_cs ? char_ram_dout :
     work_ram_cs ? work_ram_dout :
     rom_dout;
@@ -146,16 +148,6 @@ module top (
       .oled_dout(gn)
   );
 
-  // MIDI
-  midi midi (
-      .clk(clk_25mhz),
-      .rst_n(rst_n),
-      .param_ram_we(param_ram_cs ? cpu_mem_wstrb : 0),
-      .param_ram_addr(cpu_mem_addr[7:2]),
-      .param_ram_data(cpu_mem_wdata),
-      .param_ram_q(param_ram_dout)
-  );
-
   // UART
   uart #(
       .CLKS_PER_BIT(2604),
@@ -170,8 +162,18 @@ module top (
       .done(uart_rx_done),
       .din(cpu_mem_wdata[7:0]),
       .dout(uart_rx_dout),
-      .tx(serial_tx),
-      .rx(serial_rx)
+      .tx(ser_tx),
+      .rx(ser_rx)
+  );
+
+  // Encoder
+  encoder encoder (
+      .clk(clk_25mhz),
+      .rst_n(rst_n),
+      .re(encoder_cs && !cpu_mem_wstrb),
+      .a(enc_a),
+      .b(enc_b),
+      .q(encoder_dout)
   );
 
 endmodule

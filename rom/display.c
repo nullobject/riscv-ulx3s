@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 
 volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
@@ -43,6 +44,30 @@ void write_uint16(uint16_t n, uint16_t flags, uint8_t col, uint8_t row) {
   }
 }
 
+void write_int16(int16_t n, uint16_t flags, uint8_t col, uint8_t row) {
+  char buffer[8];
+  char *p = buffer;
+  uint16_t value = n < 0 ? -n : n;
+  uint16_t j = (row << 5) + col;
+
+  // Add digits
+  while (value || p == buffer) {
+    int16_t rem = value % 10;
+    value /= 10;
+    *p++ = rem + '0';
+  }
+
+  // Add sign for negative numbers
+  if (n < 0) {
+    *p++ = '-';
+  }
+
+  // Write buffer to VRAM and pad with spaces
+  for (int i = 0; i < 8; i++) {
+    CHAR_RAM[j++] = p > buffer ? *--p : ' ';
+  }
+}
+
 int __attribute__((noreturn)) main() {
   clear_text();
 
@@ -58,10 +83,10 @@ int __attribute__((noreturn)) main() {
   while (1) {
     params[0] += *KNOBS;
 
-    write_uint16(params[0], TEXT_NORMAL, 0, 3);
-    write_uint16(params[1], TEXT_NORMAL, 8, 3);
-    write_uint16(params[2], TEXT_NORMAL, 16, 3);
-    write_uint16(params[3], TEXT_NORMAL, 24, 3);
+    write_int16(params[0], TEXT_NORMAL, 0, 3);
+    write_int16(params[1], TEXT_NORMAL, 8, 3);
+    write_int16(params[2], TEXT_NORMAL, 16, 3);
+    write_int16(params[3], TEXT_NORMAL, 24, 3);
     write_uint16(params[4], TEXT_NORMAL, 0, 6);
     write_uint16(params[5], TEXT_NORMAL, 8, 6);
     write_uint16(params[6], TEXT_NORMAL, 16, 6);

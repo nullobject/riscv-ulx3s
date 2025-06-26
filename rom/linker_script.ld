@@ -12,6 +12,7 @@ SECTIONS
     _stext = .;
     *(.text .text.*)
     *(.rodata .rodata.*)
+    *(.srodata .srodata.*)
     . = ALIGN(4);
     _etext = .;
   } > rom

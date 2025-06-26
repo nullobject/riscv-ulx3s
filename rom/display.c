@@ -71,25 +71,22 @@ void write_int16(int16_t n, uint16_t flags, uint8_t col, uint8_t row) {
 int __attribute__((noreturn)) main() {
   clear_text();
 
-  uint16_t params[] = {0x0123, 0x4567, 0x89AB, 0xCDEF,
-                       0x0123, 0x4567, 0x89AB, 0xCDEF};
-
   write_text(TOP_BAR, TEXT_NORMAL, 0, 0);
   write_text(BOT_BAR, TEXT_NORMAL, 0, 7);
 
   write_text("FREQ    RES     ENV     MODE    ", TEXT_NORMAL, 0, 2);
   write_text("ATK     DEC     SUS     REL     ", TEXT_NORMAL, 0, 5);
 
-  while (1) {
-    params[0] += *KNOBS;
+  KNOBS[0] = 0x0123;
 
-    write_int16(params[0], TEXT_NORMAL, 0, 3);
-    write_int16(params[1], TEXT_NORMAL, 8, 3);
-    write_int16(params[2], TEXT_NORMAL, 16, 3);
-    write_int16(params[3], TEXT_NORMAL, 24, 3);
-    write_uint16(params[4], TEXT_NORMAL, 0, 6);
-    write_uint16(params[5], TEXT_NORMAL, 8, 6);
-    write_uint16(params[6], TEXT_NORMAL, 16, 6);
-    write_uint16(params[7], TEXT_NORMAL, 24, 6);
+  while (1) {
+    write_int16(KNOBS[0], TEXT_NORMAL, 0, 3);
+    write_int16(KNOBS[1], TEXT_NORMAL, 8, 3);
+    write_int16(KNOBS[2], TEXT_NORMAL, 16, 3);
+    write_int16(KNOBS[3], TEXT_NORMAL, 24, 3);
+    // write_uint16(KNOBS[0], TEXT_NORMAL, 0, 6);
+    // write_uint16(KNOBS[1], TEXT_NORMAL, 8, 6);
+    // write_uint16(KNOBS[2], TEXT_NORMAL, 16, 6);
+    // write_uint16(KNOBS[3], TEXT_NORMAL, 24, 6);
   }
 }

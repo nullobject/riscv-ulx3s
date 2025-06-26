@@ -11,6 +11,8 @@ module encoder (
     output [15:0] q
 );
 
+  localparam VALUE_MAX = 8191;
+  localparam VALUE_MIN = -8192;
   localparam VELOCITY_SHIFT = 3;
 
   reg [19:0] timer_cnt;
@@ -21,6 +23,11 @@ module encoder (
   wire debounced_a, debounced_b;
   wire cnt;
   wire dir;
+  wire signed [15:0] next_value =
+    we[1:0] ? din[15:0] :
+    cnt && dir ? value + velocity :
+    cnt && !dir ? value - velocity :
+    value;
 
   // Velocity
   always @(posedge clk) begin
@@ -45,9 +52,7 @@ module encoder (
     if (!rst_n) begin
       value <= 0;
     end else begin
-      if (cnt) value <= dir ? value + velocity : value - velocity;
-      if (we[0]) value[7:0] <= din[7:0];
-      if (we[1]) value[15:8] <= din[15:8];
+      value <= next_value > VALUE_MAX ? VALUE_MAX : next_value < VALUE_MIN ? VALUE_MIN : next_value;
     end
   end
 

@@ -4,10 +4,11 @@
 module encoder (
     input clk,
     input rst_n,
-    input re,
+    input [1:0] we,
     input a,
     input b,
-    output reg [15:0] q
+    input [15:0] din,
+    output [15:0] q
 );
 
   localparam VELOCITY_SHIFT = 3;
@@ -45,11 +46,8 @@ module encoder (
       value <= 0;
     end else begin
       if (cnt) value <= dir ? value + velocity : value - velocity;
-
-      if (re) begin
-        value <= 0;
-        q <= value;
-      end
+      if (we[0]) value[7:0] <= din[7:0];
+      if (we[1]) value[15:8] <= din[15:8];
     end
   end
 
@@ -76,6 +74,8 @@ module encoder (
       .cnt(cnt),
       .dir(dir)
   );
+
+  assign q = value;
 
 endmodule
 

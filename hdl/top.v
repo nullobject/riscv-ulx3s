@@ -46,8 +46,6 @@ module top (
   wire [31:0] work_ram_dout;
   reg char_ram_ready;
   wire [31:0] char_ram_dout;
-  reg encoder_ready;
-  wire [15:0] encoder_dout;
 
   wire [7:0] uart_rx_dout;
   wire uart_tx_empty;
@@ -55,6 +53,9 @@ module top (
   wire uart_rx_done;
   wire uart_ready = uart_cs &&
     ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
+
+  wire [15:0] encoder_dout;
+  wire encoder_ready = encoder_cs;
 
   // IRQ bitmask
   wire [31:0] cpu_irq = {28'b0, uart_rx_done, 3'b0};
@@ -70,7 +71,6 @@ module top (
     rom_ready      <= rom_cs;
     work_ram_ready <= work_ram_cs;
     char_ram_ready <= char_ram_cs;
-    encoder_ready  <= encoder_cs;
   end
 
   // Set CPU memory ready signal
@@ -166,12 +166,13 @@ module top (
   );
 
   // Encoder
-  encoder encoder (
+  encoder encoder_0 (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .re(encoder_cs && !cpu_mem_wstrb),
+      .we(encoder_cs ? cpu_mem_wstrb[1:0] : 0),
       .a(enc_a),
       .b(enc_b),
+      .din(cpu_mem_wdata[15:0]),
       .q(encoder_dout)
   );
 

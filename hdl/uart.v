@@ -2,8 +2,7 @@
  * Simple UART controller.
  */
 module uart #(
-    parameter CLKS_PER_BIT = 1000,
-    parameter INVERT = 0
+    parameter CLKS_PER_BIT = 1000
 ) (
     input clk,
     input rst_n,
@@ -25,8 +24,7 @@ module uart #(
 );
 
   uart_tx #(
-      .CLKS_PER_BIT(CLKS_PER_BIT),
-      .INVERT(INVERT)
+      .CLKS_PER_BIT(CLKS_PER_BIT)
   ) uart_tx (
       .clk(clk),
       .rst_n(rst_n),
@@ -37,8 +35,7 @@ module uart #(
   );
 
   uart_rx #(
-      .CLKS_PER_BIT(CLKS_PER_BIT),
-      .INVERT(INVERT)
+      .CLKS_PER_BIT(CLKS_PER_BIT)
   ) uart_rx (
       .clk(clk),
       .rst_n(rst_n),
@@ -52,8 +49,7 @@ module uart #(
 endmodule
 
 module uart_rx #(
-    parameter CLKS_PER_BIT = 1000,
-    parameter INVERT = 0
+    parameter CLKS_PER_BIT = 1000
 ) (
     input clk,
     input rst_n,
@@ -76,12 +72,10 @@ module uart_rx #(
   localparam RX_DATA_BITS = 2;
   localparam RX_STOP_BIT = 3;
 
-  reg [1:0] state = 0;
+  reg [ 1:0] state = 0;
   reg [15:0] count;
-  reg [2:0] index;
-  reg [7:0] shift_reg;
-
-  wire serial_rx = INVERT ? !rx : rx;
+  reg [ 2:0] index;
+  reg [ 7:0] shift_reg;
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -92,7 +86,7 @@ module uart_rx #(
 
       case (state)
         IDLE: begin
-          if (!full && !serial_rx) state <= RX_START_BIT;
+          if (!full && !rx) state <= RX_START_BIT;
           count <= 0;
           index <= 0;
           done  <= 0;
@@ -103,7 +97,7 @@ module uart_rx #(
           count <= count + 1;
 
           if (count == (CLKS_PER_BIT - 1) / 2) begin
-            if (!serial_rx) begin
+            if (!rx) begin
               state <= RX_DATA_BITS;
               count <= 0;
             end else state <= IDLE;
@@ -118,7 +112,7 @@ module uart_rx #(
             if (index == 7) state <= RX_STOP_BIT;
             count <= 0;
             index <= index + 1;
-            shift_reg = {serial_rx, shift_reg[7:1]};
+            shift_reg = {rx, shift_reg[7:1]};
           end
         end
 
@@ -142,8 +136,7 @@ module uart_rx #(
 endmodule
 
 module uart_tx #(
-    parameter CLKS_PER_BIT = 1000,
-    parameter INVERT = 0
+    parameter CLKS_PER_BIT = 1000
 ) (
     input clk,
     input rst_n,
@@ -153,11 +146,11 @@ module uart_tx #(
     output reg empty,
     output reg done,
 
-    // Data bus
+    // Data buswish
     input [7:0] data,
 
     // Serial data
-    output tx
+    output reg tx
 );
 
   // States
@@ -166,13 +159,10 @@ module uart_tx #(
   localparam DATA_BITS = 2;
   localparam STOP_BIT = 3;
 
-  reg [1:0] state = 0;
+  reg [ 1:0] state = 0;
   reg [15:0] count;
-  reg [2:0] index;
-  reg [7:0] shift_reg;
-  reg serial_tx;
-
-  assign tx = INVERT ? !serial_tx : serial_tx;
+  reg [ 2:0] index;
+  reg [ 7:0] shift_reg;
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -190,13 +180,13 @@ module uart_tx #(
           count <= 0;
           index <= 0;
           done <= 0;
-          serial_tx <= 1;
+          tx <= 1;
         end
 
         // Send start bit
         START_BIT: begin
           count <= count + 1;
-          serial_tx <= 0;
+          tx <= 0;
 
           if (count == CLKS_PER_BIT - 1) begin
             state <= DATA_BITS;
@@ -207,7 +197,7 @@ module uart_tx #(
         // Send data bits
         DATA_BITS: begin
           count <= count + 1;
-          serial_tx <= shift_reg[0];
+          tx <= shift_reg[0];
 
           if (count == CLKS_PER_BIT - 1) begin
             if (index == 7) state <= STOP_BIT;
@@ -225,7 +215,7 @@ module uart_tx #(
           end
           count <= count + 1;
           done <= 1;
-          serial_tx <= 1;
+          tx <= 1;
         end
 
         default: state <= IDLE;

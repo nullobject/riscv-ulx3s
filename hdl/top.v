@@ -150,8 +150,7 @@ module top (
 
   // UART
   uart #(
-      .CLKS_PER_BIT(2604),
-      .INVERT(1)
+      .CLKS_PER_BIT(2604)
   ) uart (
       .clk(clk_25mhz),
       .rst_n(rst_n),

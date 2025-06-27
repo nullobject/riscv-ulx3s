@@ -3,7 +3,7 @@
 
 volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
 volatile uint8_t *LED = (uint8_t *)0x3000;
-volatile uint16_t *KNOBS = (uint16_t *)0x5000;
+volatile uint32_t *KNOBS = (uint32_t *)0x5000;
 
 const char HEX_DIGITS[] = "0123456789ABCDEF";
 
@@ -35,7 +35,7 @@ void write_text(const char *s, uint16_t flags, uint8_t col, uint8_t row) {
   }
 }
 
-void write_uint16(uint16_t n, uint16_t flags, uint8_t col, uint8_t row) {
+void write_uint16(uint32_t n, uint16_t flags, uint8_t col, uint8_t row) {
   uint8_t j = (row << 5) + col;
   CHAR_RAM[j++] = '$';
   for (int i = 3; i >= 0; i--) {
@@ -44,29 +44,29 @@ void write_uint16(uint16_t n, uint16_t flags, uint8_t col, uint8_t row) {
   }
 }
 
-void write_int16(int16_t n, uint16_t flags, uint8_t col, uint8_t row) {
-  char buffer[8];
-  char *p = buffer;
-  uint16_t value = n < 0 ? -n : n;
-  uint16_t j = (row << 5) + col;
-
-  // Add digits
-  while (value || p == buffer) {
-    int16_t rem = value % 10;
-    value /= 10;
-    *p++ = rem + '0';
-  }
-
-  // Add sign for negative numbers
-  if (n < 0) {
-    *p++ = '-';
-  }
-
-  // Write buffer to VRAM and pad with spaces
-  for (int i = 0; i < 8; i++) {
-    CHAR_RAM[j++] = p > buffer ? *--p : ' ';
-  }
-}
+// void write_int16(int16_t n, uint16_t flags, uint8_t col, uint8_t row) {
+//   char buffer[8];
+//   char *p = buffer;
+//   uint16_t value = n < 0 ? -n : n;
+//   uint16_t j = (row << 5) + col;
+//
+//   // Add digits
+//   while (value || p == buffer) {
+//     int16_t rem = value % 10;
+//     value /= 10;
+//     *p++ = rem + '0';
+//   }
+//
+//   // Add sign for negative numbers
+//   if (n < 0) {
+//     *p++ = '-';
+//   }
+//
+//   // Write buffer to VRAM and pad with spaces
+//   for (int i = 0; i < 8; i++) {
+//     CHAR_RAM[j++] = p > buffer ? *--p : ' ';
+//   }
+// }
 
 int __attribute__((noreturn)) main() {
   clear_text();
@@ -77,17 +77,23 @@ int __attribute__((noreturn)) main() {
   write_text("FREQ    RES     ENV     MODE    ", TEXT_NORMAL, 0, 2);
   write_text("ATK     DEC     SUS     REL     ", TEXT_NORMAL, 0, 5);
 
-  KNOBS[0] = 0x0123;
-  KNOBS[1] = 0x4567;
+  KNOBS[0] = 0;
+  KNOBS[1] = 1;
+  KNOBS[2] = 2;
+  KNOBS[3] = 3;
+  KNOBS[4] = 4;
+  KNOBS[5] = 5;
+  KNOBS[6] = 6;
+  KNOBS[7] = 7;
 
   while (1) {
     write_uint16(KNOBS[0], TEXT_NORMAL, 0, 3);
     write_uint16(KNOBS[1], TEXT_NORMAL, 8, 3);
     write_uint16(KNOBS[2], TEXT_NORMAL, 16, 3);
     write_uint16(KNOBS[3], TEXT_NORMAL, 24, 3);
-    // write_uint16(KNOBS[0], TEXT_NORMAL, 0, 6);
-    // write_uint16(KNOBS[1], TEXT_NORMAL, 8, 6);
-    // write_uint16(KNOBS[2], TEXT_NORMAL, 16, 6);
-    // write_uint16(KNOBS[3], TEXT_NORMAL, 24, 6);
+    write_uint16(KNOBS[4], TEXT_NORMAL, 0, 6);
+    write_uint16(KNOBS[5], TEXT_NORMAL, 8, 6);
+    write_uint16(KNOBS[6], TEXT_NORMAL, 16, 6);
+    write_uint16(KNOBS[7], TEXT_NORMAL, 24, 6);
   }
 }

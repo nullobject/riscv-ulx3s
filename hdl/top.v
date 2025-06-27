@@ -54,8 +54,8 @@ module top (
   wire uart_ready = uart_cs &&
     ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
 
-  wire [15:0] encoder_hi_dout, encoder_lo_dout;
-  wire encoder_ready = encoder_cs;
+  wire [15:0] encoder_dout;
+  reg encoder_ready;
 
   // IRQ bitmask
   wire [31:0] cpu_irq = {28'b0, uart_rx_done, 3'b0};
@@ -71,6 +71,7 @@ module top (
     rom_ready      <= rom_cs;
     work_ram_ready <= work_ram_cs;
     char_ram_ready <= char_ram_cs;
+    encoder_ready  <= encoder_cs;
   end
 
   // Set CPU memory ready signal
@@ -84,7 +85,7 @@ module top (
 
   // Set CPU memory read data bus
   assign cpu_mem_rdata =
-    encoder_cs ? {encoder_hi_dout, encoder_lo_dout} :
+    encoder_cs ? {16'b0, encoder_dout} :
     uart_cs ? {24'b0, uart_rx_dout} :
     led_cs ? {24'b0, led} :
     char_ram_cs ? char_ram_dout :
@@ -165,25 +166,16 @@ module top (
       .rx(ser_rx)
   );
 
-  // Encoder
-  encoder encoder_0 (
+  // Encoders
+  encoders encoders (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .we(encoder_cs ? cpu_mem_wstrb[1:0] : 0),
-      .a(enc_a),
-      .b(enc_b),
+      .we(encoder_cs && &cpu_mem_wstrb[1:0]),
+      .addr(cpu_mem_addr[4:2]),
       .din(cpu_mem_wdata[15:0]),
-      .q(encoder_lo_dout)
-  );
-
-  encoder encoder_1 (
-      .clk(clk_25mhz),
-      .rst_n(rst_n),
-      .we(encoder_cs ? cpu_mem_wstrb[3:2] : 0),
+      .dout(encoder_dout),
       .a(enc_a),
-      .b(enc_b),
-      .din(cpu_mem_wdata[31:16]),
-      .q(encoder_hi_dout)
+      .b(enc_b)
   );
 
 endmodule

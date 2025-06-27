@@ -4,9 +4,9 @@
 module encoder (
     input clk,
     input rst_n,
-    input [1:0] we,
     input a,
     input b,
+    input we,
     input [15:0] din,
     output [15:0] q
 );
@@ -51,7 +51,7 @@ module encoder (
       value <= 0;
     end else begin
       value <=
-        we[1:0] ? din :
+        we ? din :
         cnt && dir ? (overflow ? 16'hFFFF : next_value) :
         cnt && !dir ? (underflow ? 16'h0000 : prev_value) :
         value;

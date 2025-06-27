@@ -78,12 +78,13 @@ int __attribute__((noreturn)) main() {
   write_text("ATK     DEC     SUS     REL     ", TEXT_NORMAL, 0, 5);
 
   KNOBS[0] = 0x0123;
+  KNOBS[1] = 0x4567;
 
   while (1) {
-    write_int16(KNOBS[0], TEXT_NORMAL, 0, 3);
-    write_int16(KNOBS[1], TEXT_NORMAL, 8, 3);
-    write_int16(KNOBS[2], TEXT_NORMAL, 16, 3);
-    write_int16(KNOBS[3], TEXT_NORMAL, 24, 3);
+    write_uint16(KNOBS[0], TEXT_NORMAL, 0, 3);
+    write_uint16(KNOBS[1], TEXT_NORMAL, 8, 3);
+    write_uint16(KNOBS[2], TEXT_NORMAL, 16, 3);
+    write_uint16(KNOBS[3], TEXT_NORMAL, 24, 3);
     // write_uint16(KNOBS[0], TEXT_NORMAL, 0, 6);
     // write_uint16(KNOBS[1], TEXT_NORMAL, 8, 6);
     // write_uint16(KNOBS[2], TEXT_NORMAL, 16, 6);

@@ -54,7 +54,7 @@ module top (
   wire uart_ready = uart_cs &&
     ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
 
-  wire [15:0] encoder_dout;
+  wire [15:0] encoder_hi_dout, encoder_lo_dout;
   wire encoder_ready = encoder_cs;
 
   // IRQ bitmask
@@ -84,7 +84,7 @@ module top (
 
   // Set CPU memory read data bus
   assign cpu_mem_rdata =
-    encoder_cs ? {16'b0, encoder_dout} :
+    encoder_cs ? {encoder_hi_dout, encoder_lo_dout} :
     uart_cs ? {24'b0, uart_rx_dout} :
     led_cs ? {24'b0, led} :
     char_ram_cs ? char_ram_dout :
@@ -173,7 +173,17 @@ module top (
       .a(enc_a),
       .b(enc_b),
       .din(cpu_mem_wdata[15:0]),
-      .q(encoder_dout)
+      .q(encoder_lo_dout)
+  );
+
+  encoder encoder_1 (
+      .clk(clk_25mhz),
+      .rst_n(rst_n),
+      .we(encoder_cs ? cpu_mem_wstrb[3:2] : 0),
+      .a(enc_a),
+      .b(enc_b),
+      .din(cpu_mem_wdata[31:16]),
+      .q(encoder_hi_dout)
   );
 
 endmodule

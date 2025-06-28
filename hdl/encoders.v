@@ -6,7 +6,7 @@ module encoders (
     input clk,
     input rst_n,
 
-    // CPU port
+    // Registers
     input         reg_we,
     input  [ 2:0] reg_addr,
     input  [15:0] reg_data,

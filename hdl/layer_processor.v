@@ -8,8 +8,8 @@ module layer_processor #(
     input en,
 
     // VRAM
-    output [ 7:0] ram_addr,
-    input  [15:0] ram_data,
+    output [ 7:0] vram_addr,
+    input  [15:0] vram_data,
 
     // Pixel data
     input  [12:0] pixel_addr,
@@ -40,9 +40,9 @@ module layer_processor #(
       offset_x == 2 ? tile_rom_dout[15:8] :
       tile_rom_dout[7:0];
 
-  assign ram_addr =
+  assign vram_addr =
       // Load first tile
-      en == 0 ? 0 :
+      !en ? 0 :
       // Load first tile in next row
       col == 31 && offset_y == 7 ? {row + 1'h1, 5'h0} :
       // Load next tile in current row
@@ -50,7 +50,7 @@ module layer_processor #(
 
   always @(posedge clk) begin
     latch_tile <= offset_x == 3;
-    if (latch_tile) tile <= ram_data;
+    if (latch_tile) tile <= vram_data;
   end
 
   assign pixel_data = tile_invert ? ~tile_rom_byte : tile_rom_byte;

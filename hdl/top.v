@@ -28,26 +28,26 @@ module top (
   // Chip select
   //
   // 0000-0FFF ROM
-  // 1000-1FFF RAM
-  // 2000-21FF CHAR RAM
+  // 1000-1FFF WORK RAM
+  // 2000-21FF VIDEO RAM
   // 3000      LED
   // 4000      UART
   // 5000      ENCODERS
   // 6000      PRNG
-  wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0000;
-  wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0001;
-  wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0010;
-  wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0011;
-  wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0100;
-  wire encoder_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0101;
-  wire prng_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0110;
+  wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 0;
+  wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 1;
+  wire vram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 2;
+  wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 3;
+  wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4;
+  wire encoder_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 5;
+  wire prng_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 6;
 
   reg rom_ready;
   wire [31:0] rom_dout;
   reg work_ram_ready;
   wire [31:0] work_ram_dout;
-  reg char_ram_ready;
-  wire [31:0] char_ram_dout;
+  reg vram_ready;
+  wire [31:0] vram_dout;
 
   wire [7:0] uart_rx_dout;
   wire uart_tx_empty;
@@ -76,7 +76,7 @@ module top (
   always @(posedge clk_25mhz) begin
     rom_ready      <= rom_cs;
     work_ram_ready <= work_ram_cs;
-    char_ram_ready <= char_ram_cs;
+    vram_ready     <= vram_cs;
     encoder_ready  <= encoder_cs;
   end
 
@@ -84,7 +84,7 @@ module top (
   assign cpu_mem_ready =
     rom_ready ||
     work_ram_ready ||
-    char_ram_ready ||
+    vram_ready ||
     encoder_ready ||
     uart_ready ||
     prng_ready ||
@@ -96,7 +96,7 @@ module top (
     encoder_cs ? {16'b0, encoder_dout} :
     uart_cs ? {24'b0, uart_rx_dout} :
     led_cs ? {24'b0, led} :
-    char_ram_cs ? char_ram_dout :
+    vram_cs ? vram_dout :
     work_ram_cs ? work_ram_dout :
     rom_dout;
 
@@ -146,10 +146,10 @@ module top (
   gpu gpu (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .char_ram_we(char_ram_cs ? cpu_mem_wstrb : 0),
-      .char_ram_addr(cpu_mem_addr[8:2]),
-      .char_ram_data(cpu_mem_wdata),
-      .char_ram_q(char_ram_dout),
+      .vram_we(vram_cs ? cpu_mem_wstrb : 0),
+      .vram_addr(cpu_mem_addr[8:2]),
+      .vram_data(cpu_mem_wdata),
+      .vram_q(vram_dout),
       .oled_cs(gp[0]),
       .oled_rst(gp[1]),
       .oled_dc(gp[3]),

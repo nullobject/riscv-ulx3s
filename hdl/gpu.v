@@ -5,11 +5,11 @@ module gpu (
     input clk,
     input rst_n,
 
-    // Character RAM
-    input  [ 3:0] char_ram_we,
-    input  [ 8:2] char_ram_addr,
-    input  [31:0] char_ram_data,
-    output [31:0] char_ram_q,
+    // VRAM
+    input  [ 3:0] vram_we,
+    input  [ 8:2] vram_addr,
+    input  [31:0] vram_data,
+    output [31:0] vram_q,
 
     // OLED signals
     output       oled_cs,
@@ -19,38 +19,37 @@ module gpu (
     output [7:0] oled_dout
 );
 
-  wire [7:0] char_ram_addr_b;
-  wire [15:0] char_ram_q_b;
-  wire [7:0] char_data;
+  wire [7:0] layer_vram_addr;
+  wire [15:0] layer_vram_q;
   wire pixel_re;
   wire [12:0] pixel_addr;
-  wire [7:0] pixel_data = char_data;
+  wire [7:0] pixel_data;
 
   dual_port_ram #(
       .DEPTH(128),
       .ADDR_WIDTH_A(7),
       .ADDR_WIDTH_B(8)
-  ) char_ram (
+  ) vram (
       .clk(clk),
 
       // Port A
-      .we_a(char_ram_we),
-      .addr_a(char_ram_addr),
-      .data_a(char_ram_data),
-      .q_a(char_ram_q),
+      .we_a(vram_we),
+      .addr_a(vram_addr),
+      .data_a(vram_data),
+      .q_a(vram_q),
 
       // Port B
-      .addr_b(char_ram_addr_b),
-      .q_b(char_ram_q_b)
+      .addr_b(layer_vram_addr),
+      .q_b(layer_vram_q)
   );
 
-  layer_processor char_layer (
+  layer_processor layer (
       .clk(clk),
       .en(pixel_re),
-      .ram_addr(char_ram_addr_b),
-      .ram_data(char_ram_q_b),
+      .vram_addr(layer_vram_addr),
+      .vram_data(layer_vram_q),
       .pixel_addr(pixel_addr),
-      .pixel_data(char_data)
+      .pixel_data(pixel_data)
   );
 
   oled oled (

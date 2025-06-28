@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
+volatile uint16_t *VRAM = (uint16_t *)0x2000;
 volatile uint8_t *LED = (uint8_t *)0x3000;
 volatile uint32_t *KNOBS = (uint32_t *)0x5000;
 volatile uint32_t *PRNG = (uint32_t *)0x6000;
@@ -24,7 +24,7 @@ void irq() { /* do nothing */ }
 
 void clear_text() {
   for (int i = 0; i < 256; i++) {
-    CHAR_RAM[i] = 0;
+    VRAM[i] = 0;
   }
 }
 
@@ -32,16 +32,16 @@ void write_text(const char *s, uint16_t flags, uint8_t col, uint8_t row) {
   uint8_t i = (row << 5) + col;
   while (*s) {
     char c = *s++;
-    CHAR_RAM[i++] = (flags << 12) | c;
+    VRAM[i++] = (flags << 12) | c;
   }
 }
 
 void write_uint16(uint32_t n, uint16_t flags, uint8_t col, uint8_t row) {
   uint8_t j = (row << 5) + col;
-  CHAR_RAM[j++] = '$';
+  VRAM[j++] = '$';
   for (int i = 3; i >= 0; i--) {
     char c = HEX_DIGITS[(n >> (i << 2)) & 0x0F];
-    CHAR_RAM[j++] = (flags << 12) | c;
+    VRAM[j++] = (flags << 12) | c;
   }
 }
 

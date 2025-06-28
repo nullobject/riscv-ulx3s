@@ -54,7 +54,6 @@ module top (
   wire uart_ready = uart_cs && ((!cpu_mem_wstrb && uart_full) || (cpu_mem_wstrb[0] && uart_empty));
 
   wire [15:0] encoder_dout;
-  reg encoder_ready;
 
   wire [31:0] prng_dout;
   wire prng_valid;
@@ -74,7 +73,6 @@ module top (
     rom_ready      <= rom_cs;
     work_ram_ready <= work_ram_cs;
     vram_ready     <= vram_cs;
-    encoder_ready  <= encoder_cs;
   end
 
   // Set CPU memory ready signal
@@ -82,20 +80,21 @@ module top (
     rom_ready ||
     work_ram_ready ||
     vram_ready ||
-    encoder_ready ||
+    led_cs ||
     uart_ready ||
-    prng_ready ||
-    led_cs;
+    encoder_cs ||
+    prng_ready;
 
-  // Set CPU memory read data bus
+  // Multiplex read data bus
   assign cpu_mem_rdata =
-    prng_cs ? prng_dout :
-    encoder_cs ? {16'b0, encoder_dout} :
-    uart_cs ? {24'b0, uart_rx_dout} :
-    led_cs ? {24'b0, led} :
-    vram_cs ? vram_dout :
+    rom_cs ? rom_dout :
     work_ram_cs ? work_ram_dout :
-    rom_dout;
+    vram_cs ? vram_dout :
+    led_cs ? {24'b0, led} :
+    uart_cs ? {24'b0, uart_rx_dout} :
+    encoder_cs ? {16'b0, encoder_dout} :
+    prng_cs ? prng_dout :
+    0;
 
   // CPU
   picorv32 #(

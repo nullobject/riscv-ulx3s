@@ -6,7 +6,7 @@ module encoders (
     input clk,
     input rst_n,
 
-    // Registers
+    // Register
     input         reg_we,
     input  [ 2:0] reg_addr,
     input  [15:0] reg_data,
@@ -25,9 +25,9 @@ module encoders (
       encoder encoder (
           .clk(clk),
           .rst_n(rst_n),
-          .we(reg_addr == i && reg_we),
-          .din(reg_data),
-          .q(q[i]),
+          .reg_we(reg_addr == i && reg_we),
+          .reg_data(reg_data),
+          .reg_q(q[i]),
           .a(a),
           .b(b)
       );

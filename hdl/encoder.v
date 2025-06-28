@@ -4,9 +4,13 @@
 module encoder (
     input clk,
     input rst_n,
-    input we,
-    input [15:0] din,
-    output [15:0] q,
+
+    // Register
+    input         reg_we,
+    input  [15:0] reg_data,
+    output [15:0] reg_q,
+
+    // Encoder signals
     input a,
     input b
 );
@@ -51,7 +55,7 @@ module encoder (
       value <= 0;
     end else begin
       value <=
-        we ? din :
+        reg_we ? reg_data :
         cnt && dir ? (overflow ? 16'hFFFF : next_value) :
         cnt && !dir ? (underflow ? 16'h0000 : prev_value) :
         value;
@@ -82,7 +86,7 @@ module encoder (
       .dir(dir)
   );
 
-  assign q = value;
+  assign reg_q = value;
 
 endmodule
 

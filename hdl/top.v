@@ -170,10 +170,10 @@ module top (
   encoders encoders (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .we(encoder_cs && &cpu_mem_wstrb[1:0]),
-      .addr(cpu_mem_addr[4:2]),
-      .din(cpu_mem_wdata[15:0]),
-      .dout(encoder_dout),
+      .reg_we(encoder_cs && &cpu_mem_wstrb[1:0]),
+      .reg_addr(cpu_mem_addr[4:2]),
+      .reg_data(cpu_mem_wdata[15:0]),
+      .reg_q(encoder_dout),
       .a(enc_a),
       .b(enc_b)
   );

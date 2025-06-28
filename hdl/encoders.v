@@ -1,12 +1,16 @@
+/**
+ * Decodes movement for the 8 hardware rotary encoders and provides CPU access
+ * to the 16-bit registers that store their current positions.
+ */
 module encoders (
     input clk,
     input rst_n,
 
     // CPU port
-    input         we,
-    input  [ 2:0] addr,
-    input  [15:0] din,
-    output [15:0] dout,
+    input         reg_we,
+    input  [ 2:0] reg_addr,
+    input  [15:0] reg_data,
+    output [15:0] reg_q,
 
     // Encoder signals
     input a,
@@ -15,30 +19,30 @@ module encoders (
 
   wire [15:0] q[8];
 
-  assign dout =
-    addr == 7 ? q[7] :
-    addr == 6 ? q[6] :
-    addr == 5 ? q[5] :
-    addr == 4 ? q[4] :
-    addr == 3 ? q[3] :
-    addr == 2 ? q[2] :
-    addr == 1 ? q[1] :
-    q[0];
-
   genvar i;
   generate
     for (i = 0; i < 8; i++) begin
       encoder encoder (
           .clk(clk),
           .rst_n(rst_n),
-          .we(addr == i && we),
+          .we(reg_addr == i && reg_we),
+          .din(reg_data),
+          .q(q[i]),
           .a(a),
-          .b(b),
-          .din(din),
-          .q(q[i])
+          .b(b)
       );
     end
   endgenerate
+
+  assign reg_q =
+    reg_addr == 0 ? q[0] :
+    reg_addr == 1 ? q[1] :
+    reg_addr == 2 ? q[2] :
+    reg_addr == 3 ? q[3] :
+    reg_addr == 4 ? q[4] :
+    reg_addr == 5 ? q[5] :
+    reg_addr == 6 ? q[6] :
+    q[7];
 
 endmodule
 

@@ -4,11 +4,11 @@
 module encoder (
     input clk,
     input rst_n,
-    input a,
-    input b,
     input we,
     input [15:0] din,
-    output [15:0] q
+    output [15:0] q,
+    input a,
+    input b
 );
 
   localparam VELOCITY_SHIFT = 3;

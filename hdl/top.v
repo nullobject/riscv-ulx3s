@@ -42,16 +42,16 @@ module top (
   wire encoder_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 5;
   wire prng_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 6;
 
-  reg rom_ready;
+  reg rom_valid;
   wire [31:0] rom_dout;
-  reg work_ram_ready;
+  reg work_ram_valid;
   wire [31:0] work_ram_dout;
-  reg vram_ready;
+  reg vram_valid;
   wire [31:0] vram_dout;
 
   wire [7:0] uart_rx_dout;
   wire uart_empty, uart_full, uart_irq;
-  wire uart_ready = uart_cs && ((!cpu_mem_wstrb && uart_full) || (cpu_mem_wstrb[0] && uart_empty));
+  wire uart_valid = uart_cs && ((!cpu_mem_wstrb && uart_full) || (cpu_mem_wstrb[0] && uart_empty));
 
   wire [15:0] encoder_dout;
 
@@ -68,20 +68,20 @@ module top (
   // Update LED register
   always @(posedge clk_25mhz) if (led_cs && cpu_mem_wstrb[0]) led <= cpu_mem_wdata[7:0];
 
-  // Update memory ready registers
+  // Update memory valid registers
   always @(posedge clk_25mhz) begin
-    rom_ready      <= rom_cs;
-    work_ram_ready <= work_ram_cs;
-    vram_ready     <= vram_cs;
+    rom_valid      <= rom_cs;
+    work_ram_valid <= work_ram_cs;
+    vram_valid     <= vram_cs;
   end
 
   // Set CPU memory ready signal
   assign cpu_mem_ready =
-    rom_ready ||
-    work_ram_ready ||
-    vram_ready ||
+    rom_valid ||
+    work_ram_valid ||
+    vram_valid ||
     led_cs ||
-    uart_ready ||
+    uart_valid ||
     encoder_cs ||
     prng_ready;
 

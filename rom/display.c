@@ -4,6 +4,7 @@
 volatile uint16_t *CHAR_RAM = (uint16_t *)0x2000;
 volatile uint8_t *LED = (uint8_t *)0x3000;
 volatile uint32_t *KNOBS = (uint32_t *)0x5000;
+volatile uint32_t *PRNG = (uint32_t *)0x6000;
 
 const char HEX_DIGITS[] = "0123456789ABCDEF";
 
@@ -77,14 +78,14 @@ int __attribute__((noreturn)) main() {
   write_text("FREQ    RES     ENV     MODE    ", TEXT_NORMAL, 0, 2);
   write_text("ATK     DEC     SUS     REL     ", TEXT_NORMAL, 0, 5);
 
-  KNOBS[0] = 0;
-  KNOBS[1] = 1;
-  KNOBS[2] = 2;
-  KNOBS[3] = 3;
-  KNOBS[4] = 4;
-  KNOBS[5] = 5;
-  KNOBS[6] = 6;
-  KNOBS[7] = 7;
+  KNOBS[0] = *PRNG;
+  KNOBS[1] = *PRNG;
+  KNOBS[2] = *PRNG;
+  KNOBS[3] = *PRNG;
+  KNOBS[4] = *PRNG;
+  KNOBS[5] = *PRNG;
+  KNOBS[6] = *PRNG;
+  KNOBS[7] = *PRNG;
 
   while (1) {
     write_uint16(KNOBS[0], TEXT_NORMAL, 0, 3);

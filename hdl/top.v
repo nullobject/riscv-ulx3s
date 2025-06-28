@@ -33,12 +33,14 @@ module top (
   // 3000      LED
   // 4000      UART
   // 5000      ENCODERS
+  // 6000      PRNG
   wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0000;
   wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0001;
   wire char_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0010;
   wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0011;
   wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0100;
   wire encoder_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0101;
+  wire prng_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'b0110;
 
   reg rom_ready;
   wire [31:0] rom_dout;
@@ -56,6 +58,10 @@ module top (
 
   wire [15:0] encoder_dout;
   reg encoder_ready;
+
+  wire [31:0] prng_dout;
+  wire prng_valid;
+  wire prng_ready = prng_cs && prng_valid;
 
   // IRQ bitmask
   wire [31:0] cpu_irq = {28'b0, uart_rx_done, 3'b0};
@@ -81,10 +87,12 @@ module top (
     char_ram_ready ||
     encoder_ready ||
     uart_ready ||
+    prng_ready ||
     led_cs;
 
   // Set CPU memory read data bus
   assign cpu_mem_rdata =
+    prng_cs ? prng_dout :
     encoder_cs ? {16'b0, encoder_dout} :
     uart_cs ? {24'b0, uart_rx_dout} :
     led_cs ? {24'b0, led} :
@@ -176,6 +184,17 @@ module top (
       .reg_q(encoder_dout),
       .a(enc_a),
       .b(enc_b)
+  );
+
+  // PRNG
+  axis_mt19937 prng (
+      .clk(clk_25mhz),
+      .rst(!rst_n),
+      .output_axis_tdata(prng_dout),
+      .output_axis_tvalid(prng_valid),
+      .output_axis_tready(prng_cs),
+      .seed_val(0),
+      .seed_start(0)
   );
 
 endmodule

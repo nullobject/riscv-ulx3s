@@ -50,11 +50,8 @@ module top (
   wire [31:0] vram_dout;
 
   wire [7:0] uart_rx_dout;
-  wire uart_tx_empty;
-  wire uart_rx_full;
-  wire uart_rx_done;
-  wire uart_ready = uart_cs &&
-    ((!cpu_mem_wstrb && uart_rx_full) || (cpu_mem_wstrb[0] && uart_tx_empty));
+  wire uart_empty, uart_full, uart_irq;
+  wire uart_ready = uart_cs && ((!cpu_mem_wstrb && uart_full) || (cpu_mem_wstrb[0] && uart_empty));
 
   wire [15:0] encoder_dout;
   reg encoder_ready;
@@ -64,7 +61,7 @@ module top (
   wire prng_ready = prng_cs && prng_valid;
 
   // IRQ bitmask
-  wire [31:0] cpu_irq = {28'b0, uart_rx_done, 3'b0};
+  wire [31:0] cpu_irq = {28'b0, uart_irq, 3'b0};
 
   // Update reset count register
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
@@ -165,9 +162,9 @@ module top (
       .rst_n(rst_n),
       .we(uart_cs && cpu_mem_wstrb[0]),
       .re(uart_cs && !cpu_mem_wstrb),
-      .empty(uart_tx_empty),
-      .full(uart_rx_full),
-      .done(uart_rx_done),
+      .empty(uart_empty),
+      .full(uart_full),
+      .irq(uart_irq),
       .din(cpu_mem_wdata[7:0]),
       .dout(uart_rx_dout),
       .tx(ser_tx),

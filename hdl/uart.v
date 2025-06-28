@@ -8,15 +8,15 @@ module uart #(
     input rst_n,
 
     // Control signals
-    input      we,
-    input      re,
-    output reg empty,
-    output reg full,
-    output reg done,
+    input  we,
+    input  re,
+    output empty,
+    output full,
+    output irq,
 
     // Data bus
-    input      [7:0] din,
-    output reg [7:0] dout,
+    input  [7:0] din,
+    output [7:0] dout,
 
     // Serial data
     output tx,
@@ -41,7 +41,7 @@ module uart #(
       .rst_n(rst_n),
       .re(re),
       .full(full),
-      .done(done),
+      .done(irq),
       .data(dout),
       .rx(rx)
   );

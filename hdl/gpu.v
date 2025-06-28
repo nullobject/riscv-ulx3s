@@ -35,7 +35,7 @@ module gpu (
 
       // Port A
       .we_a(char_ram_we),
-      .addr_a(char_ram_addr[8:2]),
+      .addr_a(char_ram_addr),
       .data_a(char_ram_data),
       .q_a(char_ram_q),
 

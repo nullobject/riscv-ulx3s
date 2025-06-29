@@ -3,7 +3,7 @@
 
 volatile uint16_t *VRAM = (uint16_t *)0x2000;
 volatile uint8_t *LED = (uint8_t *)0x3000;
-volatile uint32_t *KNOBS = (uint32_t *)0x5000;
+volatile uint16_t *KNOBS = (uint16_t *)0x5000;
 volatile uint32_t *PRNG = (uint32_t *)0x6000;
 
 const char HEX_DIGITS[] = "0123456789ABCDEF";

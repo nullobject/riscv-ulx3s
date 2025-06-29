@@ -1,11 +1,13 @@
 /**
  * Decodes movement of a rotary encoder.
+ *
+ * Reading/writing the encoder position is provided by the register port.
  */
 module encoder (
     input clk,
     input rst_n,
 
-    // Register
+    // Register port
     input         reg_we,
     input  [15:0] reg_data,
     output [15:0] reg_q,

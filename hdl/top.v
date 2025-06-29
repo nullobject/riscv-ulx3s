@@ -53,7 +53,7 @@ module top (
   wire uart_empty, uart_full, uart_irq;
   wire uart_valid = uart_cs && ((!cpu_mem_wstrb && uart_full) || (cpu_mem_wstrb[0] && uart_empty));
 
-  wire [15:0] encoder_dout;
+  wire [31:0] encoder_dout;
 
   wire [31:0] prng_dout;
   wire prng_valid;
@@ -92,7 +92,7 @@ module top (
     vram_cs ? vram_dout :
     led_cs ? {24'b0, led} :
     uart_cs ? {24'b0, uart_rx_dout} :
-    encoder_cs ? {16'b0, encoder_dout} :
+    encoder_cs ? encoder_dout :
     prng_cs ? prng_dout :
     0;
 
@@ -174,9 +174,9 @@ module top (
   encoders encoders (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .reg_we(encoder_cs && &cpu_mem_wstrb[1:0]),
-      .reg_addr(cpu_mem_addr[4:2]),
-      .reg_data(cpu_mem_wdata[15:0]),
+      .reg_we(encoder_cs ? cpu_mem_wstrb : 0),
+      .reg_addr(cpu_mem_addr[3:2]),
+      .reg_data(cpu_mem_wdata),
       .reg_q(encoder_dout),
       .a(enc_a),
       .b(enc_b)

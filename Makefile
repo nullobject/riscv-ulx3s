@@ -5,7 +5,7 @@ BUILDDIR = build
 CC = riscv32-unknown-elf-gcc
 OBJCOPY = riscv32-unknown-elf-objcopy
 
-CFLAGS = -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Trom/linker_script.ld,--strip-debug
+CFLAGS = -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Tlib/linker_script.ld,--strip-debug
 
 PROG = display
 PROG_OUT = $(BUILDDIR)/$(PROG).out
@@ -38,9 +38,9 @@ $(FAKE_HEX):
 	mkdir -p $(BUILDDIR)
 	ecpbram -w 32 -d 1024 -g $@
 
-$(PROG_OUT): rom/$(PROG).c rom/start.S rom/linker_script.ld
+$(PROG_OUT): examples/$(PROG).c lib/start.S lib/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	$(CC) $(CFLAGS) -o $@ rom/start.S $<
+	$(CC) $(CFLAGS) -o $@ lib/start.S $<
 
 $(PROG_BIN): $(PROG_OUT)
 	$(OBJCOPY) -O binary $< $@

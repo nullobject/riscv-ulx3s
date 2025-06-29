@@ -123,7 +123,7 @@ module top (
       .DEPTH(1024)
   ) prog_rom (
       .clk(clk_25mhz),
-      .addr(cpu_mem_addr[10:2]),
+      .addr(cpu_mem_addr[11:2]),
       .q(rom_dout)
   );
 
@@ -133,7 +133,7 @@ module top (
   ) work_ram (
       .clk(clk_25mhz),
       .we(work_ram_cs ? cpu_mem_wstrb : 0),
-      .addr(cpu_mem_addr[10:2]),
+      .addr(cpu_mem_addr[11:2]),
       .data(cpu_mem_wdata),
       .q(work_ram_dout)
   );

@@ -13,8 +13,6 @@ module rom #(
 
   initial if (MEM_INIT_FILE != "") $readmemh(MEM_INIT_FILE, rom);
 
-  always @(posedge clk) begin
-    q <= rom[addr];
-  end
+  always @(posedge clk) q <= rom[addr];
 
 endmodule

@@ -11,9 +11,11 @@ PROG = display
 PROG_OUT = $(BUILDDIR)/$(PROG).out
 PROG_BIN = $(BUILDDIR)/$(PROG).bin
 PROG_HEX = $(BUILDDIR)/$(PROG).hex
-FAKE_HEX = $(BUILDDIR)/rom.hex
+FAKE_ROM = $(BUILDDIR)/rom.hex
 
-SRC = $(wildcard hdl/*.v)
+LIB_SRC = lib/start.S $(wildcard lib/*.c)
+HDL_SRC = $(wildcard hdl/*.v)
+ROMS = $(wildcard rom/*.hex)
 
 all: $(BUILDDIR)/toplevel.bit
 
@@ -34,13 +36,13 @@ sim:
 clean:
 	rm -rf $(BUILDDIR)
 
-$(FAKE_HEX):
+$(FAKE_ROM):
 	mkdir -p $(BUILDDIR)
 	ecpbram -w 32 -d 1024 -g $@
 
-$(PROG_OUT): examples/$(PROG).c lib/start.S lib/linker_script.ld
+$(PROG_OUT): examples/$(PROG).c $(LIB_SRC) lib/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	$(CC) $(CFLAGS) -o $@ lib/start.S $<
+	$(CC) $(CFLAGS) -o $@ $(LIB_SRC) $<
 
 $(PROG_BIN): $(PROG_OUT)
 	$(OBJCOPY) -O binary $< $@
@@ -48,14 +50,14 @@ $(PROG_BIN): $(PROG_OUT)
 $(PROG_HEX): $(PROG_OUT)
 	$(OBJCOPY) -O verilog --verilog-data-width=4 $< $@
 
-$(BUILDDIR)/%.json: $(SRC) $(FAKE_HEX) rom/oled.hex rom/tiles.hex
-	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(SRC)
+$(BUILDDIR)/%.json: $(HDL_SRC) $(ROMS) $(FAKE_ROM)
+	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(HDL_SRC)
 
 $(BUILDDIR)/%.config: $(PIN_DEF) $(BUILDDIR)/%.json
 	 nextpnr-ecp5 --$(DEVICE) --package CABGA381 --freq 25 --textcfg $@ --json $(filter-out $<,$^) --lpf $<
 
 $(BUILDDIR)/%.bit: $(BUILDDIR)/%.config $(PROG_HEX)
-	ecpbram -f $(FAKE_HEX) -t $(PROG_HEX) -i $< -o $(BUILDDIR)/temp.config
+	ecpbram -f $(FAKE_ROM) -t $(PROG_HEX) -i $< -o $(BUILDDIR)/temp.config
 	ecppack $(BUILDDIR)/temp.config $@ --compress
 
 .SECONDARY: $(BUILDDIR)/toplevel.config $(BUILDDIR)/toplevel.json

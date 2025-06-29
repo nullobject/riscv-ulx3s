@@ -1,15 +1,8 @@
 #include <stdint.h>
 
-volatile uint8_t *LED = (uint8_t *)0x3000;
-volatile uint8_t *UART = (uint8_t *)0x4000;
+#include "../lib/hal.h"
 
 void irq() { *LED = *UART; }
-
-void delay(uint32_t d) {
-  for (uint32_t i = 0; i < d; i++) {
-    asm("nop");
-  }
-}
 
 void cout(char *a) {
   while (*a) {

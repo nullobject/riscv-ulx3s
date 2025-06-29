@@ -13,7 +13,7 @@ PROG_BIN = $(BUILDDIR)/$(PROG).bin
 PROG_HEX = $(BUILDDIR)/$(PROG).hex
 FAKE_HEX = $(BUILDDIR)/rom.hex
 
-SRC = $(wildcard hdl/*.v) $(wildcard lib/*.v)
+SRC = $(wildcard hdl/*.v)
 
 all: $(BUILDDIR)/toplevel.bit
 

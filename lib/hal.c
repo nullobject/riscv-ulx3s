@@ -2,7 +2,8 @@
 
 volatile uint16_t *VRAM = (uint16_t *)0x2000;
 volatile uint8_t *LED = (uint8_t *)0x3000;
-volatile uint8_t *UART = (uint8_t *)0x4000;
+volatile uint8_t *UART0 = (uint8_t *)0x4000;
+volatile uint8_t *UART1 = (uint8_t *)0x4004;
 volatile uint16_t *ENCODERS = (uint16_t *)0x5000;
 volatile uint32_t *PRNG = (uint32_t *)0x6000;
 

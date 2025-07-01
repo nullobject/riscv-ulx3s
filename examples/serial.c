@@ -2,11 +2,11 @@
 
 #include "../lib/hal.h"
 
-void irq() { *LED = *UART; }
+void irq() { *LED = *UART0; }
 
 void cout(char *a) {
   while (*a) {
-    *UART = *a++;
+    *UART0 = *a++;
   }
 }
 

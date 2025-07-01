@@ -9,7 +9,8 @@
 
 extern volatile uint16_t *VRAM;
 extern volatile uint8_t *LED;
-extern volatile uint8_t *UART;
+extern volatile uint8_t *UART0;
+extern volatile uint8_t *UART1;
 extern volatile uint16_t *ENCODERS;
 extern volatile uint32_t *PRNG;
 

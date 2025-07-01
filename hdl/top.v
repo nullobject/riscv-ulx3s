@@ -7,11 +7,15 @@ module top (
     output reg [7:0] led,
     output [7:0] gp,
     output [7:0] gn,
-    output ser_tx,
-    input ser_rx,
+    input uart0_rx,
+    output uart0_tx,
+    input uart1_rx,
+    output uart1_tx,
     input enc_a,
     input enc_b
 );
+
+  localparam CLOCK_FREQ = 25_000_000;
 
   assign wifi_gpio0 = 1;
 
@@ -31,8 +35,8 @@ module top (
   // 1000-1FFF WORK RAM
   // 2000-21FF VIDEO RAM
   // 3000      LED
-  // 4000      UART
-  // 5000      ENCODERS
+  // 4000-4004 UART
+  // 5000-500C ENCODERS
   // 6000      PRNG
   wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 0;
   wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 1;
@@ -49,9 +53,14 @@ module top (
   reg vram_valid;
   wire [31:0] vram_dout;
 
-  wire [7:0] uart_rx_dout;
-  wire uart_empty, uart_full, uart_irq;
-  wire uart_valid = uart_cs && ((!cpu_mem_wstrb && uart_full) || (cpu_mem_wstrb[0] && uart_empty));
+  wire [7:0] uart0_rx_dout, uart1_rx_dout;
+  wire uart0_empty, uart1_empty;
+  wire uart0_full, uart1_full;
+  wire uart0_irq, uart1_irq;
+  wire uart0_cs = uart_cs && cpu_mem_addr[2] == 0;
+  wire uart1_cs = uart_cs && cpu_mem_addr[2] == 1;
+  wire uart0_valid = uart0_cs && ((!cpu_mem_wstrb && uart0_full) || (cpu_mem_wstrb[0] && uart0_empty));
+  wire uart1_valid = uart1_cs && ((!cpu_mem_wstrb && uart1_full) || (cpu_mem_wstrb[0] && uart1_empty));
 
   wire [31:0] encoder_dout;
 
@@ -60,7 +69,7 @@ module top (
   wire prng_ready = prng_cs && prng_valid;
 
   // IRQ bitmask
-  wire [31:0] cpu_irq = {28'b0, uart_irq, 3'b0};
+  wire [31:0] cpu_irq = {27'b0, uart1_irq, uart0_irq, 3'b0};
 
   // Update reset count register
   always @(posedge clk_25mhz) reset_cnt <= reset_cnt + !rst_n;
@@ -81,7 +90,8 @@ module top (
     work_ram_valid ||
     vram_valid ||
     led_cs ||
-    uart_valid ||
+    uart0_valid ||
+    uart1_valid ||
     encoder_cs ||
     prng_ready;
 
@@ -91,7 +101,8 @@ module top (
     work_ram_cs ? work_ram_dout :
     vram_cs ? vram_dout :
     led_cs ? {24'b0, led} :
-    uart_cs ? {24'b0, uart_rx_dout} :
+    uart0_cs ? {24'b0, uart0_rx_dout} :
+    uart1_cs ? {24'b0, uart1_rx_dout} :
     encoder_cs ? encoder_dout :
     prng_cs ? prng_dout :
     0;
@@ -153,21 +164,38 @@ module top (
       .oled_dout(gn)
   );
 
-  // UART
+  // UART0 (SERIAL)
   uart #(
-      .CLKS_PER_BIT(2604)
-  ) uart (
+      .CLKS_PER_BIT(CLOCK_FREQ / 9600)
+  ) uart0 (
       .clk(clk_25mhz),
       .rst_n(rst_n),
-      .we(uart_cs && cpu_mem_wstrb[0]),
-      .re(uart_cs && !cpu_mem_wstrb),
-      .empty(uart_empty),
-      .full(uart_full),
-      .irq(uart_irq),
+      .we(uart0_cs && cpu_mem_wstrb[0]),
+      .re(uart0_cs && !cpu_mem_wstrb),
+      .empty(uart0_empty),
+      .full(uart0_full),
+      .irq(uart0_irq),
       .din(cpu_mem_wdata[7:0]),
-      .dout(uart_rx_dout),
-      .tx(ser_tx),
-      .rx(ser_rx)
+      .dout(uart0_rx_dout),
+      .rx(uart0_rx),
+      .tx(uart0_tx)
+  );
+
+  // UART1 (MIDI)
+  uart #(
+      .CLKS_PER_BIT(CLOCK_FREQ / 31250)
+  ) uart1 (
+      .clk(clk_25mhz),
+      .rst_n(rst_n),
+      .we(uart1_cs && cpu_mem_wstrb[0]),
+      .re(uart1_cs && !cpu_mem_wstrb),
+      .empty(uart1_empty),
+      .full(uart1_full),
+      .irq(uart1_irq),
+      .din(cpu_mem_wdata[7:0]),
+      .dout(uart1_rx_dout),
+      .rx(uart1_rx),
+      .tx(uart1_tx)
   );
 
   // Encoders

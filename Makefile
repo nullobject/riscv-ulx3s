@@ -38,7 +38,7 @@ clean:
 
 $(FAKE_ROM):
 	mkdir -p $(BUILDDIR)
-	ecpbram -w 32 -d 1024 -g $@
+	ecpbram -w 32 -d 4096 -g $@
 
 $(PROG_OUT): examples/$(PROG).c $(LIB_SRC) lib/linker_script.ld
 	mkdir -p $(BUILDDIR)

@@ -31,20 +31,20 @@ module top (
 
   // Chip select
   //
-  // 0000-0FFF ROM
-  // 1000-1FFF WORK RAM
-  // 2000-21FF VIDEO RAM
-  // 3000      LED
-  // 4000-4004 UART
-  // 5000-500C ENCODERS
-  // 6000      PRNG
-  wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 0;
-  wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 1;
-  wire vram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 2;
-  wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 3;
-  wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4;
-  wire encoder_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 5;
-  wire prng_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 6;
+  // 0000-3FFF ROM
+  // 4000-7FFF WORK RAM
+  // 8000-81FF VIDEO RAM
+  // 9000      LED
+  // A000-A004 UART
+  // B000-B00C ENCODERS
+  // C000      PRNG
+  wire rom_cs = cpu_mem_valid && cpu_mem_addr[15:12] >= 4'h0 && cpu_mem_addr[15:12] <= 4'h3;
+  wire work_ram_cs = cpu_mem_valid && cpu_mem_addr[15:12] >= 4'h4 && cpu_mem_addr[15:12] <= 4'h7;
+  wire vram_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'h8;
+  wire led_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'h9;
+  wire uart_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'hA;
+  wire encoder_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'hB;
+  wire prng_cs = cpu_mem_valid && cpu_mem_addr[15:12] == 4'hC;
 
   reg rom_valid;
   wire [31:0] rom_dout;
@@ -109,7 +109,7 @@ module top (
 
   // CPU
   picorv32 #(
-      .STACKADDR(32'h0000_2000),
+      .STACKADDR(32'h0000_8000),
       .BARREL_SHIFTER(1),
       .COMPRESSED_ISA(1),
       .ENABLE_MUL(1),
@@ -131,20 +131,20 @@ module top (
   // ROM
   rom #(
       .MEM_INIT_FILE("build/rom.hex"),
-      .DEPTH(1024)
+      .DEPTH(4096)
   ) prog_rom (
       .clk(clk_25mhz),
-      .addr(cpu_mem_addr[11:2]),
+      .addr(cpu_mem_addr[13:2]),
       .q(rom_dout)
   );
 
   // RAM
   ram #(
-      .DEPTH(1024)
+      .DEPTH(4096)
   ) work_ram (
       .clk(clk_25mhz),
       .we(work_ram_cs ? cpu_mem_wstrb : 0),
-      .addr(cpu_mem_addr[11:2]),
+      .addr(cpu_mem_addr[13:2]),
       .data(cpu_mem_wdata),
       .q(work_ram_dout)
   );

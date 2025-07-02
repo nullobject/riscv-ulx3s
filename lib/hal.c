@@ -1,11 +1,11 @@
 #include "hal.h"
 
-volatile uint16_t *VRAM = (uint16_t *)0x2000;
-volatile uint8_t *LED = (uint8_t *)0x3000;
-volatile uint8_t *UART0 = (uint8_t *)0x4000;
-volatile uint8_t *UART1 = (uint8_t *)0x4004;
-volatile uint16_t *ENCODERS = (uint16_t *)0x5000;
-volatile uint32_t *PRNG = (uint32_t *)0x6000;
+volatile uint16_t *VRAM = (uint16_t *)0x8000;
+volatile uint8_t *LED = (uint8_t *)0x9000;
+volatile uint8_t *UART0 = (uint8_t *)0xA000;
+volatile uint8_t *UART1 = (uint8_t *)0xA004;
+volatile uint16_t *ENCODERS = (uint16_t *)0xB000;
+volatile uint32_t *PRNG = (uint32_t *)0xC000;
 
 const char HEX_DIGITS[] = "0123456789ABCDEF";
 

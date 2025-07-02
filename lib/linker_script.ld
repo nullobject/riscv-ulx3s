@@ -1,7 +1,7 @@
 MEMORY
 {
-  rom (rx)  : ORIGIN = 0x0000, LENGTH = 0x1000
-  ram (rwx) : ORIGIN = 0x1000, LENGTH = 0x1000
+  rom (rx)  : ORIGIN = 0x0000, LENGTH = 0x4000
+  ram (rwx) : ORIGIN = 0x4000, LENGTH = 0x4000
 }
 
 SECTIONS

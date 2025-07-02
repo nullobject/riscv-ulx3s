@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "../lib/hal.h"
+#include "../lib/midi.h"
 
 const char TOP_BAR[] = {196, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197,
                         197, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197,
@@ -10,7 +11,14 @@ const char BOT_BAR[] = {204, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205,
                         205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205,
                         205, 205, 205, 205, 205, 205, 205, 205, 205, 220, 0};
 
-void irq() { /* do nothing */ }
+midi_parser *p = {0};
+
+void irq() {
+  midi_message m = midi_parse(p, *UART1);
+  if (m.status) {
+    *LED = ~*LED;
+  }
+}
 
 int __attribute__((noreturn)) main() {
   clear_text();

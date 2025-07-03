@@ -109,7 +109,6 @@ module top (
 
   // CPU
   picorv32 #(
-      .STACKADDR(32'h0000_8000),
       .BARREL_SHIFTER(1),
       .COMPRESSED_ISA(1),
       .ENABLE_MUL(1),

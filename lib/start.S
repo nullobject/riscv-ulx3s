@@ -3,13 +3,10 @@
 .section .text
 
 reset_vec:
+  la sp, _stack_end
   picorv32_maskirq_insn(zero, zero)
   j start
 
-/**
- * Stores all registers on the stack, calls the C interrupt handler, and then
- * loads all registers from the stack.
- */
 .balign 16
 irq_vec:
   /* Save registers */
@@ -90,9 +87,9 @@ irq_vec:
 
 start:
   /* Copy DATA section */
-  la a0, _etext
-  la a1, _sdata
-  la a2, _edata
+  la a0, _text_end
+  la a1, _data_start
+  la a2, _data_end
   bge a1, a2, _end_init_data
 _loop_init_data:
   lw a3, 0(a0)
@@ -103,8 +100,8 @@ _loop_init_data:
 _end_init_data:
 
   /* Zero-init BSS section */
-  la a0, _sbss
-  la a1, _ebss
+  la a0, _bss_start
+  la a1, _bss_end
   bge a0, a1, _end_init_bss
 _loop_init_bss:
   sw zero, 0(a0)

@@ -5,7 +5,7 @@ BUILDDIR = build
 CC = riscv32-unknown-elf-gcc
 OBJCOPY = riscv32-unknown-elf-objcopy
 
-CFLAGS = -Wall -DULX3S -ffreestanding -nostdlib -Wl,-Bstatic,-Tlib/linker_script.ld,--strip-debug
+CFLAGS = -DULX3S -O2 -Wall -nostartfiles -Wl,-Tlib/linker_script.ld,-Map=$(BUILDDIR)/output.map
 
 PROG = display
 PROG_OUT = $(BUILDDIR)/$(PROG).out
@@ -13,8 +13,8 @@ PROG_BIN = $(BUILDDIR)/$(PROG).bin
 PROG_HEX = $(BUILDDIR)/$(PROG).hex
 FAKE_ROM = $(BUILDDIR)/rom.hex
 
-LIB_SRC = lib/start.S $(wildcard lib/*.c)
-HDL_SRC = $(wildcard hdl/*.v)
+C_SRC = lib/start.S $(wildcard lib/*.c)
+VERILOG_SRC = $(wildcard hdl/*.v)
 ROMS = $(wildcard rom/*.hex)
 
 all: $(BUILDDIR)/toplevel.bit
@@ -40,9 +40,9 @@ $(FAKE_ROM):
 	mkdir -p $(BUILDDIR)
 	ecpbram -w 32 -d 4096 -g $@
 
-$(PROG_OUT): examples/$(PROG).c $(LIB_SRC) lib/linker_script.ld
+$(PROG_OUT): examples/$(PROG).c $(C_SRC) lib/linker_script.ld
 	mkdir -p $(BUILDDIR)
-	$(CC) $(CFLAGS) -o $@ $(LIB_SRC) $<
+	$(CC) $(CFLAGS) -o $@ $(C_SRC) $<
 
 $(PROG_BIN): $(PROG_OUT)
 	$(OBJCOPY) -O binary $< $@
@@ -50,8 +50,8 @@ $(PROG_BIN): $(PROG_OUT)
 $(PROG_HEX): $(PROG_OUT)
 	$(OBJCOPY) -O verilog --verilog-data-width=4 $< $@
 
-$(BUILDDIR)/%.json: $(HDL_SRC) $(ROMS) $(FAKE_ROM)
-	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(HDL_SRC)
+$(BUILDDIR)/%.json: $(VERILOG_SRC) $(ROMS) $(FAKE_ROM)
+	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(VERILOG_SRC)
 
 $(BUILDDIR)/%.config: $(PIN_DEF) $(BUILDDIR)/%.json
 	 nextpnr-ecp5 --$(DEVICE) --package CABGA381 --freq 25 --textcfg $@ --json $(filter-out $<,$^) --lpf $<

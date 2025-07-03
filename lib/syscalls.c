@@ -6,12 +6,20 @@
 #include "hal.h"
 
 extern char _end;
+extern char _stack_start;
 
 void *_sbrk(ptrdiff_t incr) {
-  static char *heap = &_end;
-  char *prev_heap = heap;
-  heap += incr;
-  return prev_heap;
+  static char *heap_end = &_end;
+  char *prev_heap_end = heap_end;
+
+  // Check if heap would collide with stack
+  if (heap_end + incr > &_stack_start) {
+    errno = ENOMEM;
+    return (void *)-1;
+  }
+
+  heap_end += incr;
+  return prev_heap_end;
 }
 
 int _close(int file) { return -1; }

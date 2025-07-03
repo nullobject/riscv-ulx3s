@@ -40,15 +40,14 @@ SECTIONS
     _bss_end = .;
   } > ram
 
-  .stack (NOLOAD):
-  {
-    . = ALIGN(4);
-    _stack_start = .;
-    . = . + STACK_SIZE;
-    . = ALIGN(4);
-    _stack_end = .;
-  } > ram
-
+  /* Heap starts here and grows upwards */
   . = ALIGN(4);
   _end = .;
+
+  /* Stack grows downwards from the end of RAM */
+  _stack_end = ORIGIN(ram) + LENGTH(ram);
+  _stack_start = _stack_end - STACK_SIZE;
+
+  /* Ensure heap doesn't overlap with stack */
+  ASSERT(_end <= _stack_start, "Error: Heap overlaps with stack")
 }

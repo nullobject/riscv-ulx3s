@@ -116,7 +116,7 @@ module uart_rx #(
           end
         end
 
-        // Wait CLKS_PER_BIT-1 clock cycles for Stop bit to finish
+        // Wait CLKS_PER_BIT-1 clock cycles for stop bit to finish
         RX_STOP_BIT: begin
           count <= count + 1;
 

@@ -1,7 +1,7 @@
 MEMORY
 {
-  rom (rx)  : ORIGIN = 0x0000, LENGTH = 0x4000
-  ram (rwx) : ORIGIN = 0x4000, LENGTH = 0x4000
+  rom (rx)  : ORIGIN = 0x00000, LENGTH = 0x10000
+  ram (rwx) : ORIGIN = 0x10000, LENGTH = 0x10000
 }
 
 STACK_SIZE = 4K;

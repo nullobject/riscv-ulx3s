@@ -52,8 +52,8 @@ int __attribute__((noreturn)) main() {
         write_text("NOTEON  ", TEXT_NORMAL, 0, 2);
         write_uint16(c->data[0], TEXT_NORMAL, 8, 3);
         write_uint16(c->data[1], TEXT_NORMAL, 16, 3);
-      } else if (c->status == MIDI_POLY_PRESSURE) {
-        write_text("PPRESS  ", TEXT_NORMAL, 0, 2);
+      } else if (c->status == MIDI_AFTERTOUCH) {
+        write_text("AFTER   ", TEXT_NORMAL, 0, 2);
         write_uint16(c->data[0], TEXT_NORMAL, 8, 3);
         write_uint16(c->data[1], TEXT_NORMAL, 16, 3);
       } else if (c->status == MIDI_CONTROL_CHANGE) {
@@ -66,11 +66,11 @@ int __attribute__((noreturn)) main() {
       } else if (c->status == MIDI_CHANNEL_PRESSURE) {
         write_text("PRESS   ", TEXT_NORMAL, 0, 2);
         write_uint16(c->data[0], TEXT_NORMAL, 8, 3);
-      } else if (c->status == MIDI_PITCH_WHEEL) {
+      } else if (c->status == MIDI_PITCH_BEND) {
         write_text("BEND    ", TEXT_NORMAL, 0, 2);
         write_uint16(c->data[0], TEXT_NORMAL, 8, 3);
         write_uint16(c->data[1], TEXT_NORMAL, 16, 3);
-      } else if (c->status != 0xB0) {
+      } else {
         write_text("ERROR", TEXT_NORMAL, 0, 2);
       }
     }

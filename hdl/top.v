@@ -210,7 +210,7 @@ module top (
   );
 
   // PRNG
-  axis_mt19937 prng (
+  prng prng (
       .clk(clk_25mhz),
       .rst(!rst_n),
       .output_axis_tdata(prng_dout),

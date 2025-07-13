@@ -2,4 +2,5 @@
 *.gtkw
 *.vcd
 build
+compile_commands.json
 obj_dir

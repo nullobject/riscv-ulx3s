@@ -1,28 +1,28 @@
 DEVICE = 85k
 PIN_DEF = ulx3s_v20.lpf
-BUILDDIR = build
+BUILD_DIR = build
 
 CC = riscv32-unknown-elf-gcc
 OBJCOPY = riscv32-unknown-elf-objcopy
 
-CFLAGS = -DULX3S -O2 -Wall -nostartfiles -Wl,-Tlib/linker_script.ld,-Map=$(BUILDDIR)/output.map
-
 PROG = display
-PROG_OUT = $(BUILDDIR)/$(PROG).out
-PROG_BIN = $(BUILDDIR)/$(PROG).bin
-PROG_HEX = $(BUILDDIR)/$(PROG).hex
-FAKE_ROM = $(BUILDDIR)/rom.hex
+PROG_OUT = $(BUILD_DIR)/$(PROG).out
+PROG_BIN = $(BUILD_DIR)/$(PROG).bin
+PROG_HEX = $(BUILD_DIR)/$(PROG).hex
+FAKE_ROM = $(BUILD_DIR)/rom.hex
 
-C_SRC = lib/start.S $(wildcard lib/*.c)
-VERILOG_SRC = $(wildcard hdl/*.v)
+C_SOURCES = lib/start.S $(wildcard lib/*.c)
+C_DEFINES = -DULX3S
+C_FLAGS = $(C_DEFINES) -O2 -Wall -nostartfiles -Wl,-Tlib/linker_script.ld,-Map=$(BUILD_DIR)/output.map
+VERILOG_SOURCES = $(wildcard hdl/*.v)
 ROMS = $(wildcard rom/*.hex)
 
-all: $(BUILDDIR)/toplevel.bit
+all: $(BUILD_DIR)/toplevel.bit
 
-program: $(BUILDDIR)/toplevel.bit
+program: $(BUILD_DIR)/toplevel.bit
 	fujprog $^
 
-ftp: $(BUILDDIR)/toplevel.bit
+ftp: $(BUILD_DIR)/toplevel.bit
 	ftp -u ftp://ulx3s/fpga $^
 
 tty:
@@ -34,15 +34,13 @@ sim:
 	obj_dir/Vtop
 
 clean:
-	rm -rf $(BUILDDIR)
+	rm -rf $(BUILD_DIR)
 
-$(FAKE_ROM):
-	mkdir -p $(BUILDDIR)
+$(FAKE_ROM): | $(BUILD_DIR)
 	ecpbram -w 32 -d 16384 -g $@
 
-$(PROG_OUT): examples/$(PROG).c $(C_SRC) lib/linker_script.ld
-	mkdir -p $(BUILDDIR)
-	$(CC) $(CFLAGS) -o $@ $(C_SRC) $<
+$(PROG_OUT): examples/$(PROG).c $(C_SOURCES) lib/linker_script.ld | $(BUILD_DIR)
+	$(CC) $(C_FLAGS) -o $@ $(C_SOURCES) $<
 
 $(PROG_BIN): $(PROG_OUT)
 	$(OBJCOPY) -O binary $< $@
@@ -50,15 +48,18 @@ $(PROG_BIN): $(PROG_OUT)
 $(PROG_HEX): $(PROG_OUT)
 	$(OBJCOPY) -O verilog --verilog-data-width=4 $< $@
 
-$(BUILDDIR)/%.json: $(VERILOG_SRC) $(ROMS) $(FAKE_ROM)
-	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(VERILOG_SRC)
+$(BUILD_DIR)/%.json: $(VERILOG_SOURCES) $(ROMS) $(FAKE_ROM) | $(BUILD_DIR)
+	yosys -p "synth_ecp5 -abc9 -top top -json $@" $(VERILOG_SOURCES)
 
-$(BUILDDIR)/%.config: $(PIN_DEF) $(BUILDDIR)/%.json
+$(BUILD_DIR)/%.config: $(PIN_DEF) $(BUILD_DIR)/%.json
 	 nextpnr-ecp5 --$(DEVICE) --package CABGA381 --freq 25 --textcfg $@ --json $(filter-out $<,$^) --lpf $<
 
-$(BUILDDIR)/%.bit: $(BUILDDIR)/%.config $(PROG_HEX)
-	ecpbram -f $(FAKE_ROM) -t $(PROG_HEX) -i $< -o $(BUILDDIR)/temp.config
-	ecppack $(BUILDDIR)/temp.config $@ --compress
+$(BUILD_DIR)/%.bit: $(BUILD_DIR)/%.config $(PROG_HEX)
+	ecpbram -f $(FAKE_ROM) -t $(PROG_HEX) -i $< -o $(BUILD_DIR)/temp.config
+	ecppack $(BUILD_DIR)/temp.config $@ --compress
 
-.SECONDARY: $(BUILDDIR)/toplevel.config $(BUILDDIR)/toplevel.json
+$(BUILD_DIR):
+	mkdir $@
+
+.SECONDARY: $(BUILD_DIR)/toplevel.config $(BUILD_DIR)/toplevel.json
 .PHONY: all clean ftp program sim tty
